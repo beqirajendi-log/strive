@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lift Log</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#111214" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Lift Log" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #111214; --surface: #1c1d21; --surface2: #25262c; --surface3: #2d2e36;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+  --text: #eeeef0; --muted: #7a7b85; --muted2: #55565f;
+  --accent: #f0c040; --accent2: rgba(240,192,64,0.15);
+  --green: #5ddb8a; --green2: rgba(93,219,138,0.12);
+  --r: 10px; --rs: 6px;
+  --day1: #1a2a3a; --day1b: rgba(96,160,255,0.18); --day1t: #60a0ff;
+  --day2: #1a2e1e; --day2b: rgba(80,220,120,0.18); --day2t: #50dc78;
+  --day3: #2a1e2e; --day3b: rgba(180,100,255,0.18); --day3t: #b464ff;
+  --day4: #2e1e1a; --day4b: rgba(255,130,80,0.18); --day4t: #ff8250;
+}
+body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+/* NAV */
+.nav-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 20; }
+.nav-tab { flex: 1; padding: 14px 4px; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border: none; background: transparent; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* PAGES */
+.page { display: none; padding: 1.25rem; }
+.page.active { display: block; }
+.page-header { margin-bottom: 1.25rem; }
+.page-header h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); line-height: 1; }
+.page-header p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+/* WEEK NAV */
+.week-nav { display: flex; align-items: center; margin-bottom: 0.75rem; }
+.nav-btn { width: 36px; height: 36px; border-radius: var(--rs); border: 1px solid var(--border2); background: var(--surface); color: var(--text); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+.nav-btn:hover { background: var(--surface2); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.week-label { flex: 1; text-align: center; }
+.week-label .wnum { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+.week-label .wsub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.week-dots { display: flex; gap: 3px; margin-bottom: 1rem; }
+.week-dot { height: 3px; flex: 1; border-radius: 2px; background: var(--surface2); transition: background 0.2s; cursor: pointer; }
+.week-dot.done { background: var(--muted2); }
+.week-dot.active { background: var(--accent); }
+.week-dot.partial { background: rgba(240,192,64,0.4); }
+
+/* SLIDE TRANSITION */
+.days-wrapper { overflow: hidden; position: relative; }
+.days-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; }
+.days-grid.slide-left { animation: slideLeft 0.3s cubic-bezier(0.4,0,0.2,1); }
+.days-grid.slide-right { animation: slideRight 0.3s cubic-bezier(0.4,0,0.2,1); }
+@keyframes slideLeft {
+  from { transform: translateX(60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideRight {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* DAY CARDS */
+.day-card { border-radius: var(--r); overflow: hidden; border: 1px solid transparent; transition: border-color 0.2s; }
+.day-card[data-day="1"] { background: var(--day1); border-color: var(--day1t); }
+.day-card[data-day="2"] { background: var(--day2); border-color: var(--day2t); }
+.day-card[data-day="3"] { background: var(--day3); border-color: var(--day3t); }
+.day-card[data-day="4"] { background: var(--day4); border-color: var(--day4t); }
+.day-card[data-day="1"] { border-color: rgba(96,160,255,0.3); }
+.day-card[data-day="2"] { border-color: rgba(80,220,120,0.3); }
+.day-card[data-day="3"] { border-color: rgba(180,100,255,0.3); }
+.day-card[data-day="4"] { border-color: rgba(255,130,80,0.3); }
+.day-card.has-data[data-day="1"] { border-color: var(--day1t); }
+.day-card.has-data[data-day="2"] { border-color: var(--day2t); }
+.day-card.has-data[data-day="3"] { border-color: var(--day3t); }
+.day-card.has-data[data-day="4"] { border-color: var(--day4t); }
+
+.day-header { padding: 10px 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: center; }
+.day-label { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+.day-card[data-day="1"] .day-label { color: var(--day1t); }
+.day-card[data-day="2"] .day-label { color: var(--day2t); }
+.day-card[data-day="3"] .day-label { color: var(--day3t); }
+.day-card[data-day="4"] .day-label { color: var(--day4t); }
+.day-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; transition: all 0.2s; }
+.day-card.has-data .day-check { background: var(--green2); border-color: var(--green); color: var(--green); }
+.day-body { padding: 10px 12px 12px; }
+.section-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted2); margin-bottom: 5px; }
+
+/* INPUTS */
+.main-lift-select, .acc-select { width: 100%; padding: 6px 24px 6px 8px; font-size: 12px; font-family: 'Barlow', sans-serif; font-weight: 500; border-radius: var(--rs); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); outline: none; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a7b85' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+.main-lift-select { margin-bottom: 8px; font-size: 13px; padding: 7px 28px 7px 10px; }
+.main-lift-select:focus, .acc-select:focus { border-color: var(--accent); }
+.col-heads { display: grid; grid-template-columns: 18px 1fr 1fr 1fr; gap: 4px; margin-bottom: 4px; }
+.col-heads span { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted2); text-align: center; }
+.col-heads span:first-child { text-align: left; }
+.set-row-mini { display: grid; grid-template-columns: 18px 1fr 1fr 1fr; gap: 4px; margin-bottom: 4px; align-items: center; }
+.set-num-mini { font-size: 10px; color: var(--muted2); }
+.set-row-mini input, .acc-num-inputs input { width: 100%; padding: 5px 4px; font-size: 12px; font-family: 'Barlow', sans-serif; text-align: center; border-radius: 4px; border: 1px solid var(--border); background: var(--surface3); color: var(--text); outline: none; transition: border-color 0.15s; }
+.set-row-mini input:focus { border-color: var(--accent); }
+.acc-num-inputs input:focus { border-color: rgba(93,219,138,0.5); }
+input::placeholder { color: var(--muted2); }
+.acc-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 8px 0; }
+.acc-item { margin-bottom: 7px; }
+.acc-select-wrap { margin-bottom: 3px; }
+.acc-num-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.col-heads-acc { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 3px; }
+.col-heads-acc span { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted2); text-align: center; }
+.save-day-btn { width: 100%; margin-top: 10px; padding: 8px; font-size: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-radius: var(--rs); border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+.save-day-btn:hover { background: var(--surface2); color: var(--text); }
+.save-day-btn.saved { background: var(--green2); border-color: var(--green); color: var(--green); }
+
+/* CHART */
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem; margin-bottom: 1rem; }
+.chart-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text); margin-bottom: 0.25rem; }
+.chart-sub { font-size: 11px; color: var(--muted); margin-bottom: 1rem; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+canvas { width: 100% !important; }
+
+/* SETUP */
+.lift-setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem; margin-bottom: 1rem; }
+.lift-setup-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; }
+.setup-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.setup-row:last-child { border-bottom: none; padding-bottom: 0; }
+.setup-lift-name { font-size: 14px; font-weight: 600; }
+.setup-input-wrap { display: flex; align-items: center; gap: 6px; }
+.setup-input-wrap input { width: 80px; padding: 7px 10px; font-size: 14px; font-family: 'Barlow', sans-serif; text-align: center; border-radius: var(--rs); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); outline: none; }
+.setup-input-wrap input:focus { border-color: var(--accent); }
+.setup-input-wrap span { font-size: 12px; color: var(--muted); }
+.save-setup-btn { width: 100%; padding: 12px; font-size: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-radius: var(--rs); border: 1px solid var(--accent); background: var(--accent2); color: var(--accent); cursor: pointer; transition: all 0.15s; margin-top: 0.5rem; }
+.save-setup-btn:hover { background: var(--accent); color: #111; }
+
+/* PRs */
+.pr-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem; margin-bottom: 1rem; }
+.pr-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; color: var(--accent); }
+.pr-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.pr-row:first-child { padding-top: 0; }
+.pr-row:last-child { border-bottom: none; padding-bottom: 0; }
+.pr-lift { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.pr-detail { font-size: 12px; color: var(--muted); }
+.pr-right { text-align: right; }
+.pr-badge { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 20px; display: inline-block; margin-bottom: 4px; }
+.pr-badge.up { background: var(--green2); border: 1px solid var(--green); color: var(--green); }
+.pr-badge.same { background: rgba(96,160,255,0.12); border: 1px solid #60a0ff; color: #60a0ff; }
+.pr-badge.none { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); }
+.pr-1rm { font-size: 11px; color: var(--muted); }
+.no-data { text-align: center; padding: 2rem; font-size: 13px; color: var(--muted); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--accent); color: #111; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 10px 22px; border-radius: 20px; opacity: 0; transition: all 0.2s ease; pointer-events: none; z-index: 100; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchPage('log')">Log</button>
+  <button class="nav-tab" onclick="switchPage('charts')">Charts</button>
+  <button class="nav-tab" onclick="switchPage('prs')">PRs</button>
+  <button class="nav-tab" onclick="switchPage('setup')">Setup</button>
+</div>
+
+<div id="page-log" class="page active">
+  <div class="page-header">
+    <h2>Lift Log</h2>
+    <p>12-week training cycle</p>
+  </div>
+  <div class="week-nav">
+    <button class="nav-btn" id="prev-btn" onclick="changeWeek(-1, 'right')">&#8592;</button>
+    <div class="week-label">
+      <div class="wnum" id="week-display">WEEK 1</div>
+      <div class="wsub" id="week-sub">4 days to log</div>
+    </div>
+    <button class="nav-btn" id="next-btn" onclick="changeWeek(1, 'left')">&#8594;</button>
+  </div>
+  <div class="week-dots" id="week-dots"></div>
+  <div class="days-wrapper">
+    <div class="days-grid" id="days-grid"></div>
+  </div>
+</div>
+
+<div id="page-charts" class="page">
+  <div class="page-header">
+    <h2>Volume</h2>
+    <p>Weekly sets × reps × load per main lift</p>
+  </div>
+  <div class="chart-card">
+    <h3>Weekly Volume</h3>
+    <p class="chart-sub">Total lbs per week per lift</p>
+    <div class="chart-legend" id="chart-legend"></div>
+    <canvas id="volumeChart" height="220"></canvas>
+  </div>
+</div>
+
+<div id="page-prs" class="page">
+  <div class="page-header">
+    <h2>Personal Records</h2>
+    <p>Best logged sets vs cycle starting weight</p>
+  </div>
+  <div id="prs-content"></div>
+</div>
+
+<div id="page-setup" class="page">
+  <div class="page-header">
+    <h2>Cycle Setup</h2>
+    <p>Enter your starting weights for this cycle</p>
+  </div>
+  <div class="lift-setup-card">
+    <h3>Starting weights</h3>
+    <div id="setup-rows"></div>
+  </div>
+  <button class="save-setup-btn" onclick="saveSetup()">Save starting weights</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MAIN_LIFTS = ['Back Squat', 'Bench Press', 'Deadlift', 'Shoulder Press'];
+
+const ALL_ACCESSORIES = [
+  'Ab Wheel Rollout','Arnold Press','Back Extension','Barbell Row','Bicep Curl',
+  'Bulgarian Split Squat','Cable Fly','Cable Row','Calf Raises','Chest Dip',
+  'Chin-up','DB RDL','DB Row','Dips','Face Pulls','Front Squat','Glute Bridge',
+  'Good Morning','Hack Squat','Hammer Curl','Hip Thrust','Incline DB Press',
+  'Knee Extension','Lat Pulldown','Leg Curl','Leg Press','Lunges','Machine Row',
+  'Machine Shoulder Press','Overhead Tricep','Pec Fly','Preacher Curl',
+  'Pull-up','Push-up','RDL','Rear Delt Fly','Reverse Fly','Romanian Deadlift',
+  'Seated Calf Raise','Shoulder Raises','Single Leg RDL','Skull Crusher',
+  'Step Up','T-Bar Row','Tricep Pushdown','Walking Lunges'
+];
+
+const DEFAULT_ACCESSORIES = [
+  ['RDL', 'Bulgarian Split Squat', 'Back Extension', 'Calf Raises'],
+  ['Barbell Row', 'Shoulder Raises', 'Reverse Fly', 'Bicep Curl'],
+  ['Hip Thrust', 'Knee Extension', 'DB RDL', 'Back Extension'],
+  ['T-Bar Row', 'Dips', 'Machine Shoulder Press', 'Pec Fly']
+];
+
+const LIFT_COLORS = {
+  'Back Squat':      '#60a0ff',
+  'Bench Press':     '#50dc78',
+  'Deadlift':        '#b464ff',
+  'Shoulder Press':  '#ff8250'
+};
+
+const TOTAL_WEEKS = 12;
+const DAYS = 4;
+let currentWeek = 1;
+let logData = JSON.parse(localStorage.getItem('ll_log') || '{}');
+let setupData = JSON.parse(localStorage.getItem('ll_setup') || '{}');
+let chartInstance = null;
+
+function key(w, d) { return `w${w}_d${d}`; }
+function getLog(w, d) { return logData[key(w, d)] || null; }
+function setLog(w, d, v) { logData[key(w, d)] = v; localStorage.setItem('ll_log', JSON.stringify(logData)); }
+function weekDone(w) { let n=0; for(let d=1;d<=DAYS;d++) if(getLog(w,d)?.saved) n++; return n; }
+
+function init() {
+  for(let w=TOTAL_WEEKS;w>=1;w--) { if(weekDone(w)>0){currentWeek=w;break;} }
+  renderSetup();
+  renderAll();
+  document.addEventListener('keydown', e => {
+    if(e.key==='ArrowLeft') changeWeek(-1,'right');
+    if(e.key==='ArrowRight') changeWeek(1,'left');
+  });
+  let sx=0;
+  document.addEventListener('touchstart', e=>{sx=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend', e=>{
+    const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>60 && document.getElementById('page-log').classList.contains('active'))
+      changeWeek(dx<0?1:-1, dx<0?'left':'right');
+  },{passive:true});
+}
+
+function switchPage(p) {
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  ['log','charts','prs','setup'].forEach((id,i)=>{
+    if(id===p) document.querySelectorAll('.nav-tab')[i].classList.add('active');
+  });
+  if(p==='prs') renderPRs();
+  if(p==='charts') renderChart();
+}
+
+function changeWeek(dir, anim) {
+  const n=currentWeek+dir;
+  if(n<1||n>TOTAL_WEEKS) return;
+  currentWeek=n;
+  renderAll(anim);
+}
+
+function renderAll(anim) {
+  renderHeader();
+  renderDots();
+  renderDays(anim);
+}
+
+function renderHeader() {
+  document.getElementById('week-display').textContent=`WEEK ${currentWeek}`;
+  document.getElementById('prev-btn').disabled=currentWeek===1;
+  document.getElementById('next-btn').disabled=currentWeek===TOTAL_WEEKS;
+  const done=weekDone(currentWeek);
+  document.getElementById('week-sub').textContent=
+    done===DAYS?'✓ Week complete':done===0?`${DAYS} days to log`:`${done} done · ${DAYS-done} remaining`;
+}
+
+function renderDots() {
+  const c=document.getElementById('week-dots');
+  c.innerHTML='';
+  for(let w=1;w<=TOTAL_WEEKS;w++){
+    const dot=document.createElement('div');
+    const done=weekDone(w);
+    dot.className='week-dot'+(w===currentWeek?' active':'')+(w!==currentWeek&&done===DAYS?' done':'')+(w!==currentWeek&&done>0&&done<DAYS?' partial':'');
+    dot.onclick=()=>{const dir=w>currentWeek?'left':'right'; currentWeek=w; renderAll(dir);};
+    c.appendChild(dot);
+  }
+}
+
+function accOptions(defaults, saved) {
+  return defaults.map((def, i) => {
+    const val = saved ? (saved[i] || def) : def;
+    const opts = ALL_ACCESSORIES.map(a => `<option value="${a}"${a===val?' selected':''}>${a}</option>`).join('');
+    return `<option value="${val}"${!ALL_ACCESSORIES.includes(val)?' selected':''}>${val}</option>` + (ALL_ACCESSORIES.includes(val) ? opts.replace(`<option value="${val}" selected>`, `<option value="${val}" selected>`) : opts);
+  });
+}
+
+function renderDays(anim) {
+  const grid = document.getElementById('days-grid');
+  if(anim) {
+    grid.classList.remove('slide-left','slide-right');
+    void grid.offsetWidth;
+    grid.classList.add('slide-'+anim);
+  }
+  grid.innerHTML='';
+  for(let d=1;d<=DAYS;d++){
+    const saved=getLog(currentWeek,d);
+    const hasSave=saved?.saved;
+    const defAccs=DEFAULT_ACCESSORIES[d-1];
+    const mainSets=saved?.mainSets||[{s:'',r:'',w:''},{s:'',r:'',w:''},{s:'',r:'',w:''}];
+    const accSets=saved?.accSets||defAccs.map(()=>({s:'',r:'',ex:''}));
+    const selLift=saved?.lift||'';
+
+    const mainRows=mainSets.map((row,i)=>`
+      <div class="set-row-mini">
+        <div class="set-num-mini">${i+1}</div>
+        <input type="number" min="1" placeholder="sets" value="${row.s}" id="d${d}_ms${i}_s"/>
+        <input type="number" min="1" placeholder="reps" value="${row.r}" id="d${d}_ms${i}_r"/>
+        <input type="number" min="0" step="2.5" placeholder="lbs" value="${row.w}" id="d${d}_ms${i}_w"/>
+      </div>`).join('');
+
+    const accRows=defAccs.map((def,i)=>{
+      const savedEx=accSets[i]?.ex||def;
+      const opts=ALL_ACCESSORIES.map(a=>`<option value="${a}"${a===savedEx?' selected':''}>${a}</option>`).join('');
+      const extraOpt=!ALL_ACCESSORIES.includes(savedEx)?`<option value="${savedEx}" selected>${savedEx}</option>`:'';
+      return `
+        <div class="acc-item">
+          <div class="acc-select-wrap">
+            <select class="acc-select" id="d${d}_ac${i}_ex">${extraOpt}${opts}</select>
+          </div>
+          <div class="acc-num-inputs">
+            <input type="number" min="1" placeholder="sets" value="${accSets[i]?.s||''}" id="d${d}_ac${i}_s"/>
+            <input type="number" min="1" placeholder="reps" value="${accSets[i]?.r||''}" id="d${d}_ac${i}_r"/>
+          </div>
+        </div>`;
+    }).join('');
+
+    const card=document.createElement('div');
+    card.className='day-card'+(hasSave?' has-data':'');
+    card.setAttribute('data-day',d);
+    card.id=`dc-${d}`;
+    card.innerHTML=`
+      <div class="day-header">
+        <span class="day-label">Day ${d}</span>
+        <div class="day-check">${hasSave?'✓':''}</div>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Main lift</div>
+        <select class="main-lift-select" id="d${d}_lift">
+          <option value="">— select —</option>
+          ${MAIN_LIFTS.map(l=>`<option value="${l}"${l===selLift?' selected':''}>${l}</option>`).join('')}
+        </select>
+        <div class="col-heads"><span>#</span><span>sets</span><span>reps</span><span>wt</span></div>
+        ${mainRows}
+        <div class="acc-divider"></div>
+        <div class="section-label">Accessories</div>
+        <div class="col-heads-acc"><span>sets</span><span>reps</span></div>
+        ${accRows}
+        <button class="save-day-btn${hasSave?' saved':''}" id="sb-${d}" onclick="saveDay(${d})">${hasSave?'✓ Saved':'Save day'}</button>
+      </div>`;
+    grid.appendChild(card);
+  }
+}
+
+function saveDay(d) {
+  const lift=document.getElementById(`d${d}_lift`).value;
+  if(!lift){showToast('Select a main lift');return;}
+  const mainSets=[];
+  for(let i=0;i<3;i++){
+    mainSets.push({
+      s:document.getElementById(`d${d}_ms${i}_s`).value,
+      r:document.getElementById(`d${d}_ms${i}_r`).value,
+      w:document.getElementById(`d${d}_ms${i}_w`).value
+    });
+  }
+  if(!mainSets.some(s=>s.s&&s.r&&s.w)){showToast('Log at least one set');return;}
+  const accSets=DEFAULT_ACCESSORIES[d-1].map((_,i)=>({
+    ex:document.getElementById(`d${d}_ac${i}_ex`).value,
+    s:document.getElementById(`d${d}_ac${i}_s`).value,
+    r:document.getElementById(`d${d}_ac${i}_r`).value
+  }));
+  setLog(currentWeek,d,{lift,mainSets,accSets,saved:true,ts:Date.now()});
+  const card=document.getElementById(`dc-${d}`);
+  card.classList.add('has-data');
+  const chk=card.querySelector('.day-check');
+  chk.textContent='✓'; chk.style.background='var(--green2)'; chk.style.borderColor='var(--green)'; chk.style.color='var(--green)';
+  const btn=document.getElementById(`sb-${d}`);
+  btn.textContent='✓ Saved'; btn.classList.add('saved');
+  renderHeader(); renderDots();
+  showToast(`Day ${d} saved`);
+}
+
+// CHART
+function getVolumeData() {
+  const liftWeekVol = {};
+  MAIN_LIFTS.forEach(l => { liftWeekVol[l] = Array(TOTAL_WEEKS).fill(0); });
+  for(let w=1;w<=TOTAL_WEEKS;w++){
+    for(let d=1;d<=DAYS;d++){
+      const entry=getLog(w,d);
+      if(!entry?.saved) continue;
+      const lift=entry.lift;
+      if(!lift) continue;
+      entry.mainSets.forEach(s=>{
+        if(s.s&&s.r&&s.w) liftWeekVol[lift][w-1]+=parseInt(s.s)*parseInt(s.r)*parseFloat(s.w);
+      });
+    }
+  }
+  return liftWeekVol;
+}
+
+function renderChart() {
+  const volData = getVolumeData();
+  const usedLifts = MAIN_LIFTS.filter(l => volData[l].some(v=>v>0));
+
+  const legend = document.getElementById('chart-legend');
+  legend.innerHTML = (usedLifts.length ? usedLifts : MAIN_LIFTS).map(l=>`
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${LIFT_COLORS[l]}"></div>
+      <span>${l}</span>
+    </div>`).join('');
+
+  const labels = Array.from({length:TOTAL_WEEKS},(_,i)=>`W${i+1}`);
+  const datasets = (usedLifts.length ? usedLifts : MAIN_LIFTS).map(l=>({
+    label: l,
+    data: volData[l],
+    borderColor: LIFT_COLORS[l],
+    backgroundColor: LIFT_COLORS[l]+'33',
+    borderWidth: 2,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.3,
+    fill: false
+  }));
+
+  const canvas = document.getElementById('volumeChart');
+  if(chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1c1d21',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          titleColor: '#eeeef0',
+          bodyColor: '#7a7b85',
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()} lbs`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#55565f', font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#55565f', font: { size: 10 }, callback: v => v>=1000?`${(v/1000).toFixed(1)}k`:v } }
+      }
+    }
+  });
+}
+
+// SETUP
+function renderSetup() {
+  const c=document.getElementById('setup-rows');
+  c.innerHTML=MAIN_LIFTS.map(l=>`
+    <div class="setup-row">
+      <span class="setup-lift-name">${l}</span>
+      <div class="setup-input-wrap">
+        <input type="number" min="0" step="2.5" placeholder="0" value="${setupData[l]||''}" id="setup_${l.replace(/ /g,'_')}"/>
+        <span>lbs</span>
+      </div>
+    </div>`).join('');
+}
+
+function saveSetup() {
+  MAIN_LIFTS.forEach(l=>{
+    const val=document.getElementById(`setup_${l.replace(/ /g,'_')}`).value;
+    if(val) setupData[l]=parseFloat(val);
+  });
+  localStorage.setItem('ll_setup',JSON.stringify(setupData));
+  showToast('Starting weights saved');
+}
+
+// PRs
+function renderPRs() {
+  const c=document.getElementById('prs-content');
+  const bests={};
+  for(let w=1;w<=TOTAL_WEEKS;w++){
+    for(let d=1;d<=DAYS;d++){
+      const entry=getLog(w,d);
+      if(!entry?.saved) continue;
+      const lift=entry.lift;
+      entry.mainSets.forEach(s=>{
+        if(!s.s||!s.r||!s.w) return;
+        const oneRM=Math.round(parseFloat(s.w)*(1+parseInt(s.r)/30));
+        if(!bests[lift]||oneRM>bests[lift].oneRM)
+          bests[lift]={oneRM,weight:parseFloat(s.w),reps:parseInt(s.r),sets:parseInt(s.s),week:w};
+      });
+    }
+  }
+  if(!Object.keys(bests).length){c.innerHTML='<div class="no-data">No data yet — log some workouts first.</div>';return;}
+  c.innerHTML=MAIN_LIFTS.map(lift=>{
+    const pr=bests[lift];
+    const start=setupData[lift];
+    if(!pr) return `<div class="pr-card"><h3>${lift}</h3><div class="no-data" style="padding:0.5rem 0">No sets logged yet</div></div>`;
+    let badge='',improv='';
+    if(start&&pr.weight>0){
+      const pct=Math.round(((pr.weight-start)/start)*100);
+      badge=`<div class="pr-badge ${pct>0?'up':'same'}">${pct>0?'+':''}${pct}%</div>`;
+      improv=`${pct>0?'+':''}${pct}% vs start (${start} lbs)`;
+    } else {
+      badge=`<div class="pr-badge none">No baseline</div>`;
+      improv=start?`Baseline: ${start} lbs`:'Set starting weight in Setup';
+    }
+    return `<div class="pr-card"><h3>${lift}</h3>
+      <div class="pr-row">
+        <div>
+          <div class="pr-lift">Best set</div>
+          <div class="pr-detail">${pr.sets}×${pr.reps} @ ${pr.weight} lbs · Week ${pr.week}</div>
+          <div class="pr-detail" style="margin-top:2px">${improv}</div>
+        </div>
+        <div class="pr-right">${badge}<div class="pr-1rm">est. 1RM: ${pr.oneRM} lbs</div></div>
+      </div></div>`;
+  }).join('');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// Load Chart.js then init
+const script=document.createElement('script');
+script.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+script.onload=init;
+document.head.appendChild(script);
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('/lift-log/sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
