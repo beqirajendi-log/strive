@@ -53,6 +53,25 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 .week-dot.active { background: var(--accent); border-color: var(--accent); color: #111; }
 .week-dot.partial { background: rgba(240,192,64,0.08); border-color: rgba(240,192,64,0.35); color: rgba(240,192,64,0.7); }
 
+
+/* ACCORDION DAYS */
+.day-card { border-radius: var(--r); border: 1px solid transparent; margin-bottom: 8px; overflow: hidden; }
+.day-header {
+  padding: 14px 16px; border-bottom: none;
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; user-select: none;
+}
+.day-header-left { display: flex; align-items: center; gap: 10px; }
+.day-summary { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.day-chevron {
+  font-size: 18px; color: var(--muted); transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.day-card.open .day-chevron { transform: rotate(90deg); }
+.day-card.open .day-header { border-bottom: 1px solid rgba(255,255,255,0.07); }
+.day-body { display: none; padding: 14px 16px 16px; }
+.day-card.open .day-body { display: block; }
+
 /* DAYS — full width vertical scroll */
 .days-scroll { padding: 1rem 1.25rem 2rem; }
 .days-scroll.slide-left { animation: slideL 0.28s cubic-bezier(0.4,0,0.2,1); }
@@ -169,6 +188,16 @@ canvas { width: 100% !important; }
 .pr-badge-inline.same { background: rgba(96,160,255,0.12); border: 1px solid #60a0ff; color: #60a0ff; }
 
 
+
+.skip-link {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  background: none; border: 1px solid var(--border2); border-radius: 4px;
+  color: var(--muted2); padding: 3px 8px; cursor: pointer; transition: all 0.15s;
+}
+.skip-link:hover { border-color: var(--muted); color: var(--muted); }
+.skip-link.skip-active { border-color: #7a7b85; color: #7a7b85; background: rgba(120,120,130,0.1); }
+
 .unit-toggle-row { display: flex; gap: 10px; }
 .unit-btn {
   flex: 1; padding: 12px;
@@ -181,6 +210,22 @@ canvas { width: 100% !important; }
 .unit-btn.active {
   background: var(--accent2); border-color: var(--accent); color: var(--accent);
 }
+
+
+.day-card.skipped[data-day="1"] { border-color: rgba(96,160,255,0.15); opacity: 0.7; }
+.day-card.skipped[data-day="2"] { border-color: rgba(80,220,120,0.15); opacity: 0.7; }
+.day-card.skipped[data-day="3"] { border-color: rgba(180,100,255,0.15); opacity: 0.7; }
+.day-card.skipped[data-day="4"] { border-color: rgba(255,130,80,0.15); opacity: 0.7; }
+.day-check.skipped-check { background: rgba(120,120,130,0.15); border-color: #7a7b85; color: #7a7b85; }
+.skip-day-btn {
+  width: 100%; margin-top: 8px; padding: 8px;
+  font-size: 12px; font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  border-radius: var(--rs); border: 1px dashed var(--muted2);
+  background: transparent; color: var(--muted2); cursor: pointer; transition: all 0.15s;
+}
+.skip-day-btn:hover { border-color: var(--muted); color: var(--muted); }
+.skip-day-btn.skipped { border-color: #7a7b85; color: #7a7b85; background: rgba(120,120,130,0.1); }
 
 .no-data { text-align: center; padding: 2rem; font-size: 13px; color: var(--muted); }
 input::placeholder { color: var(--muted2); }
@@ -647,7 +692,7 @@ let chartInstance=null;
 function key(w,d){return `w${w}_d${d}`;}
 function getLog(w,d){return logData[key(w,d)]||null;}
 function setLog(w,d,v){logData[key(w,d)]=v;localStorage.setItem('ll_log',JSON.stringify(logData));}
-function weekDone(w){let n=0;for(let d=1;d<=DAYS;d++)if(getLog(w,d)?.saved)n++;return n;}
+function weekDone(w){let n=0;for(let d=1;d<=DAYS;d++){const e=getLog(w,d);if(e?.saved||e?.skipped)n++;}return n;}
 function round25(v){return Math.round(v/2.5)*2.5;}
 function getPrescription(week,lift){
   const prog=PROGRAM[week-1];
@@ -767,6 +812,11 @@ function renderDays(anim){
   const scroll=document.getElementById('days-scroll');
   if(anim){scroll.classList.remove('slide-left','slide-right');void scroll.offsetWidth;scroll.classList.add('slide-'+anim);}
   scroll.innerHTML='';
+
+  // Track which day to auto-open: first unsaved, or day 1
+  let autoOpen = 1;
+  for(let d=1;d<=DAYS;d++){ if(!getLog(currentWeek,d)?.saved){autoOpen=d;break;} }
+
   for(let d=1;d<=DAYS;d++){
     const saved=getLog(currentWeek,d);
     const hasSave=saved?.saved;
@@ -778,16 +828,30 @@ function renderDays(anim){
     const liftColor=selLift?LIFT_COLORS[selLift]:'rgba(255,255,255,0.1)';
     const pctLabel=presc?`${Math.round(presc.pct*100)}% 1RM · ${PROGRAM[currentWeek-1].sets}×${PROGRAM[currentWeek-1].reps}`:'Select a lift to auto-fill';
     const accs=saved?.accs||[{ex:ALL_ACCESSORIES[0],s:'',r:''}];
-
     const accHTML=accs.map((a,i)=>buildAccItem(d,i,a)).join('');
 
+    const isSkipped=saved?.skipped||false;
+    const isOpen = d === autoOpen;
+    const summaryText = isSkipped ? 'Skipped' : (selLift
+      ? `${selLift} · ${savedSets}×${savedReps} @ ${savedLoad} ${weightUnit()}`
+      : 'Tap to log');
+
     const card=document.createElement('div');
-    card.className='day-card'+(hasSave?' has-data':'');
+    card.className='day-card'+(hasSave?' has-data':'')+(isSkipped?' skipped':'')+(isOpen?' open':'');
     card.setAttribute('data-day',d);card.id=`dc-${d}`;
     card.innerHTML=`
-      <div class="day-header">
-        <span class="day-label">Day ${d}</span>
-        <div class="day-check">${hasSave?'✓':''}</div>
+      <div class="day-header" onclick="toggleDay(${d})">
+        <div class="day-header-left">
+          <div>
+            <div class="day-label">Day ${d}</div>
+            <div class="day-summary">${summaryText}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="skip-link${isSkipped?' skip-active':''}" onclick="event.stopPropagation();skipDay(${d})">${isSkipped?'Unskip':'Skip'}</button>
+          <div class="day-check${isSkipped?' skipped-check':''}">${hasSave?'✓':(isSkipped?'–':'')}</div>
+          <span class="day-chevron">›</span>
+        </div>
       </div>
       <div class="day-body">
         <div class="section-label">Main lift</div>
@@ -810,7 +874,6 @@ function renderDays(anim){
       </div>`;
     scroll.appendChild(card);
 
-    // highlight auto-filled fields
     if(selLift&&!hasSave&&saved?.prefilled){
       ['sets','reps','load'].forEach(f=>{
         const el=document.getElementById(`d${d}_${f}`);
@@ -818,6 +881,38 @@ function renderDays(anim){
       });
     }
   }
+}
+
+
+function skipDay(d) {
+  const existing = getLog(currentWeek, d);
+  if(existing?.skipped) {
+    if(existing.saved) return;
+    setLog(currentWeek, d, {...existing, skipped: false});
+    renderAll();
+  } else {
+    setLog(currentWeek, d, {lift:'', sets:'', reps:'', load:'', accs:[], saved:false, skipped:true, ts:Date.now()});
+    renderAll();
+    // Auto-advance to next unsaved, non-skipped day
+    const nextDay = [1,2,3,4].find(i => i > d && !getLog(currentWeek,i)?.saved && !getLog(currentWeek,i)?.skipped);
+    if(nextDay) {
+      setTimeout(()=>{
+        for(let i=1;i<=DAYS;i++) document.getElementById(`dc-${i}`)?.classList.remove('open');
+        const next = document.getElementById(`dc-${nextDay}`);
+        if(next) { next.classList.add('open'); next.scrollIntoView({behavior:'smooth',block:'start'}); }
+      }, 300);
+    }
+  }
+  renderHeader(); renderDots(); updateProgressBar();
+}
+
+function toggleDay(d){
+  const card=document.getElementById(`dc-${d}`);
+  const isOpen=card.classList.contains('open');
+  // Close all
+  for(let i=1;i<=DAYS;i++) document.getElementById(`dc-${i}`)?.classList.remove('open');
+  // Open clicked if it was closed
+  if(!isOpen) card.classList.add('open');
 }
 
 function buildAccItem(d,i,a){
@@ -884,6 +979,8 @@ function saveDay(d){
   const load=document.getElementById(`d${d}_load`).value;
   if(!sets||!reps||!load){showToast('Fill in sets, reps & load');return;}
   const accs=collectAccs(d);
+  // Check PR BEFORE saving so current entry isn't included in previous bests
+  const prOneRM = checkPR(lift, parseFloat(load), parseFloat(reps), parseFloat(sets));
   setLog(currentWeek,d,{lift,sets:parseFloat(sets),reps:parseFloat(reps),load:parseFloat(load),accs,saved:true,ts:Date.now()});
   const card=document.getElementById(`dc-${d}`);
   card.classList.add('has-data');
@@ -894,10 +991,6 @@ function saveDay(d){
   renderHeader();renderDots();updateProgressBar();
   haptic(50);
 
-  // Check for PR before saving
-  const prOneRM = checkPR(lift, parseFloat(load), parseFloat(reps), parseFloat(sets));
-
-  // If week 1, auto-update template
   if(currentWeek===1){
     if(!template[d])template[d]={};
     template[d]={lift,accs};
@@ -905,8 +998,18 @@ function saveDay(d){
     renderTemplateBanner();
   }
 
+  // Auto-advance to next unsaved day
+  const nextDay = [1,2,3,4].find(i => i > d && !getLog(currentWeek,i)?.saved);
+  if(nextDay) {
+    setTimeout(()=>{
+      for(let i=1;i<=DAYS;i++) document.getElementById(`dc-${i}`)?.classList.remove('open');
+      document.getElementById(`dc-${nextDay}`)?.classList.add('open');
+      document.getElementById(`dc-${nextDay}`)?.scrollIntoView({behavior:'smooth',block:'start'});
+    }, 300);
+  }
+
   if(prOneRM) {
-    showPRCelebration(lift, prOneRM);
+    showPRCelebration(lift, prOneRM, parseFloat(load));
   } else {
     showToast(`Day ${d} saved`);
   }
@@ -1081,14 +1184,14 @@ function checkPR(lift, load, reps, sets) {
   return newOneRM > prevBest ? newOneRM : null;
 }
 
-function showPRCelebration(lift, oneRM) {
+function showPRCelebration(lift, oneRM, load) {
   document.getElementById('pr-lift-name').textContent = lift;
-  document.getElementById('pr-subtitle').textContent = `Est. 1RM: ${oneRM} lbs`;
+  document.getElementById('pr-subtitle').textContent = `${load} ${weightUnit()}`;
   const cel = document.getElementById('pr-celebration');
   cel.classList.add('show');
   launchConfetti();
   if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
-  setTimeout(() => closePRCelebration(), 3500);
+  setTimeout(() => closePRCelebration(), 4000);
 }
 
 function closePRCelebration() {
