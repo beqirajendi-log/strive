@@ -1,17 +1,15 @@
-const CACHE = 'peakblock-v3';
+const CACHE = 'peakblock-v5';
 const ASSETS = [
-  '/lift-log/',
-  '/lift-log/index.html',
-  '/lift-log/manifest.json'
+  '/peakblock/',
+  '/peakblock/index.html',
+  '/peakblock/manifest.json'
 ];
-
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
-
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -20,7 +18,6 @@ self.addEventListener('activate', e => {
   );
   self.clients.claim();
 });
-
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
