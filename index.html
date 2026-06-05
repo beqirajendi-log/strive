@@ -1659,7 +1659,11 @@ function renderPRs(){
           <div class="pr-calc-result" id="calcres_${l.replace(/ /g,'_')}"></div>
         </div>`).join('')}
       <p class="setup-note" style="margin-top:0.75rem">Your personal records are the foundation of your training plan — every session, every phase, every progression starts here.</p>
-    </div>`;
+    </div>
+    <button id="prs-save-btn" onclick="savePRs()" disabled
+      style="width:100%;margin-top:0.75rem;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:not-allowed;transition:all 0.2s;">
+      Save 1 Rep Max
+    </button>`;
 }
 
 function toggleCalc(key) {
@@ -1688,21 +1692,34 @@ function applyCalc(lift, key, oneRM) {
 }
 
 function onPRInput(lift, val) {
-  if(val) setupData[lift] = parseFloat(val);
-  else delete setupData[lift];
-  localStorage.setItem('ll_setup', JSON.stringify(setupData));
-  // refresh prefilled weights across weeks
-  if(activePlan==='531' || true) {
-    autoPopulateAllWeeks();
-    if(document.getElementById('page-log').classList.contains('active')) renderDays();
-  } else {
-    for(let w=1;w<=TOTAL_WEEKS;w++) for(let d=1;d<=DAYS;d++){
-      const e=getLog(w,d); if(!e||e.saved) continue;
-      const presc=getPrescription(w,e.lift);
-      e.sets=presc.sets; e.reps=presc.reps; e.load=presc.load;
-      setLog(w,d,e);
-    }
+  // Just enable the save button — don't save yet
+  const btn = document.getElementById('prs-save-btn');
+  if(btn) {
+    btn.disabled = false;
+    btn.style.cssText = 'width:100%;margin-top:0.75rem;padding:12px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--accent);background:var(--accent);color:#111;cursor:pointer;transition:all 0.2s;';
+    btn.textContent = 'Save 1 Rep Max';
   }
+}
+
+function savePRs() {
+  // Read all PR inputs and save
+  MAIN_LIFTS.forEach(l => {
+    const val = document.getElementById('pr_'+l.replace(/ /g,'_'))?.value;
+    if(val && parseFloat(val) > 0) setupData[l] = parseFloat(val);
+    else delete setupData[l];
+  });
+  localStorage.setItem('ll_setup', JSON.stringify(setupData));
+  // Repopulate all weeks with new weights
+  autoPopulateAllWeeks();
+  if(document.getElementById('page-log').classList.contains('active')) renderDays();
+  // Reset button
+  const btn = document.getElementById('prs-save-btn');
+  if(btn) {
+    btn.disabled = true;
+    btn.style.cssText = 'width:100%;margin-top:0.75rem;padding:12px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:not-allowed;transition:all 0.2s;';
+    btn.textContent = 'Save 1 Rep Max';
+  }
+  showToast('PRs saved — weights updated');
 }
 
 
