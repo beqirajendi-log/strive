@@ -1293,16 +1293,22 @@ function renderDays(anim){
   if(anim){scroll.classList.remove('slide-left','slide-right');void scroll.offsetWidth;scroll.classList.add('slide-'+anim);}
   scroll.innerHTML='';
 
-  // No plan selected — show empty state
+  // No plan selected — show empty state, hide week nav etc
   if(!activePlan || !PROGRAMS[activePlan]) {
-    scroll.innerHTML = `<div style="padding:2rem 1.25rem;text-align:center">
-      <div style="font-size:40px;margin-bottom:1rem">🏋️</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;color:var(--accent);margin-bottom:8px">No program selected</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:1.5rem">Select a training plan to get your sessions automatically set up based on your 1 Rep Max.</div>
-      <button onclick="switchPage('setup');goSetupScreen('setup-plan')" style="padding:12px 24px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--accent);background:var(--accent2);color:var(--accent);cursor:pointer;">Choose a Program</button>
+    // Hide week nav and progress bar
+    document.querySelector('.week-nav-wrap').style.display = 'none';
+    document.querySelector('.cycle-progress-wrap') && (document.querySelector('.cycle-progress-wrap').style.display = 'none');
+    scroll.innerHTML = `<div style="padding:3rem 1.25rem;text-align:center">
+      <div style="font-size:48px;margin-bottom:1.25rem">🏋️</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:1px;color:var(--accent);margin-bottom:8px">No program selected</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:2rem">Select a training plan to get started.</div>
+      <button onclick="switchPage('setup');goSetupScreen('setup-plan')" style="padding:13px 28px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--accent);background:var(--accent2);color:var(--accent);cursor:pointer;">Go to Training Library</button>
     </div>`;
     return;
   }
+  // Restore week nav if previously hidden
+  document.querySelector('.week-nav-wrap').style.display = '';
+  document.querySelector('.cycle-progress-wrap') && (document.querySelector('.cycle-progress-wrap').style.display = '');
 
   // Track which day to auto-open: first unsaved, or day 1
   let autoOpen = 1;
@@ -2125,14 +2131,19 @@ function showPlanConfirm(planId) {
   const overlay = document.createElement('div');
   overlay.id = 'plan-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+  const hasData = Object.keys(logData).length > 0;
+  const isFirstTime = !localStorage.getItem('ll_active_plan');
+  const confirmMsg = isFirstTime || !hasData
+    ? `You're selecting <strong style="color:var(--text)">${planNames[planId]}</strong> as your training plan. Your sessions will be set up automatically based on your 1 Rep Max.`
+    : `Switching to <strong style="color:var(--text)">${planNames[planId]}</strong> will cancel your current cycle and clear all logged data. This cannot be undone.`;
+  const confirmTitle = isFirstTime || !hasData ? 'Start Training' : 'Switch Training Plan?';
+
   overlay.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:1.5rem;width:100%;max-width:360px;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;">Switch Training Plan?</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:1.25rem;">
-        Switching to <strong style="color:var(--text)">${planNames[planId]}</strong> will cancel your current cycle and clear all logged data. This cannot be undone.
-      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;">${confirmTitle}</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:1.25rem;">${confirmMsg}</div>
       <div style="display:flex;gap:10px;">
-        <button onclick="confirmPlanSwitch('${planId}')" style="flex:1;padding:11px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--accent);background:var(--accent);color:#111;cursor:pointer;">Confirm</button>
+        <button onclick="confirmPlanSwitch('${planId}')" style="flex:1;padding:11px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--accent);background:var(--accent);color:#111;cursor:pointer;">Let's go</button>
         <button onclick="document.getElementById('plan-confirm-overlay').remove()" style="flex:1;padding:11px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">Cancel</button>
       </div>
     </div>`;
