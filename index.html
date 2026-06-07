@@ -1793,11 +1793,16 @@ function renderDays(anim){
     document.querySelector('.week-nav-wrap').style.display = 'none';
     document.querySelector('.cycle-progress-wrap') && (document.querySelector('.cycle-progress-wrap').style.display = 'none');
     document.querySelector('.page-header') && (document.querySelector('.page-header').style.display = 'none');
-    scroll.innerHTML = `<div style="padding:3rem 1.25rem;text-align:center">
-      <div style="font-size:48px;margin-bottom:1.25rem">🏋️</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:1px;color:var(--accent);margin-bottom:8px">No program selected</div>
-      <div style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:2rem">Select a training plan to get started.</div>
-      <button onclick="switchPage('profile');goProfileScreen('profile-plans')" style="padding:13px 28px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--accent);background:var(--accent2);color:var(--accent);cursor:pointer;">Go to Training Library</button>
+    scroll.innerHTML = `<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:65vh;padding:2.5rem 1.5rem">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:20px">Peakblock</div>
+      <div style="font-family:'Bebas Neue','Barlow Condensed',sans-serif;font-size:52px;letter-spacing:2px;color:var(--text);line-height:1;text-transform:uppercase;margin-bottom:6px">Train with</div>
+      <div style="font-family:'Bebas Neue','Barlow Condensed',sans-serif;font-size:52px;letter-spacing:2px;color:var(--text);line-height:1;text-transform:uppercase;margin-bottom:0">purpose.</div>
+      <div style="width:48px;height:2px;background:var(--accent);border-radius:1px;margin:24px 0"></div>
+      <div style="font-size:15px;color:var(--muted);line-height:1.75;max-width:260px;margin-bottom:2.5rem">Pick a program. We'll handle the rest.</div>
+      <button onclick="switchPage('profile');goProfileScreen('profile-plans')"
+        style="padding:14px 32px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:var(--rs);border:1px solid rgba(240,192,64,0.4);background:transparent;color:var(--accent);cursor:pointer">
+        Go to Training Library →
+      </button>
     </div>`;
     return;
   }
@@ -3727,19 +3732,4 @@ if('serviceWorker' in navigator){
 }
 </script>
 </body>
-</html>    scroll.innerHTML = `<div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:65vh;padding:2.5rem 1.5rem;font-family:'Barlow Condensed',sans-serif">
-
-      <div style="font-size:11px;font-weight:700;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:20px">Peakblock</div>
-
-      <div style="font-size:52px;font-weight:900;letter-spacing:2px;color:var(--text);line-height:1;text-transform:uppercase;margin-bottom:6px">Train with</div>
-      <div style="font-size:52px;font-weight:900;letter-spacing:2px;color:var(--text);line-height:1;text-transform:uppercase;margin-bottom:0">purpose.</div>
-
-      <div style="width:48px;height:2px;background:var(--accent);border-radius:1px;margin:24px 0"></div>
-
-      <div style="font-size:15px;color:var(--muted);line-height:1.75;max-width:260px;margin-bottom:2.5rem;font-weight:400">Pick a program. We'll handle the rest.</div>
-
-      <button onclick="switchPage('profile');goProfileScreen('profile-plans')"
-        style="padding:14px 32px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:var(--rs);border:1px solid rgba(240,192,64,0.4);background:transparent;color:var(--accent);cursor:pointer">
-        Go to Training Library →
-      </button>
-    </div>`;
+</html>
