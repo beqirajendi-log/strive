@@ -14,6 +14,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet" />
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.splash-active .page,
+body.splash-active .nav-tabs {
+  display: none !important;
+}
 :root {
   --bg: #111214; --surface: #1c1d21; --surface2: #25262c; --surface3: #2d2e36;
   --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
@@ -837,7 +841,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .ob-dot.active { background: var(--accent); width: 18px; border-radius: 3px; }
 </style>
 </head>
-<body>
+<body class="splash-active">
 
 <div id="pr-celebration" class="pr-celebration" onclick="closePRCelebration()">
   <div class="confetti-wrap" id="confetti-wrap"></div>
@@ -3707,7 +3711,10 @@ function setupAutoAdvance() {
 setTimeout(() => {
   const splash = document.getElementById('splash');
   splash.classList.add('hide');
-  setTimeout(() => splash.remove(), 600);
+  setTimeout(() => {
+    document.body.classList.remove('splash-active');
+    splash.remove();
+  }, 600);
 }, 2000);
 
 const s=document.createElement('script');
