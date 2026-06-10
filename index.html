@@ -575,6 +575,21 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
   100% { background-position: -200% 0; }
 }
 
+
+.day-card.day-saved {
+  background: rgba(93,219,138,0.06) !important;
+  border: 1px solid rgba(93,219,138,0.25) !important;
+  border-left: 3px solid rgba(93,219,138,0.6) !important;
+}
+.day-card.day-skipped {
+  background: rgba(255,130,80,0.05) !important;
+  border: 1px solid rgba(255,130,80,0.2) !important;
+  border-left: 3px solid rgba(255,130,80,0.4) !important;
+  opacity: 0.75;
+}
+.day-card.day-saved .day-label { color: rgba(93,219,138,0.9); }
+.day-card.day-saved .day-summary { color: rgba(93,219,138,0.6); }
+
 .no-data { text-align: center; padding: 2rem; font-size: 13px; color: var(--muted); }
 input::placeholder { color: var(--muted2); }
 
@@ -1694,6 +1709,8 @@ function init(){
   updatePlanBadges();
   updateLogPlanName();
   renderSetup();renderAll();
+  // Auto-open next pending day
+  setTimeout(() => autoOpenNextDay(), 100);
   document.addEventListener('keydown',e=>{
     if(e.key==='ArrowLeft')changeWeek(-1,'right');
     if(e.key==='ArrowRight')changeWeek(1,'left');
@@ -1906,6 +1923,8 @@ function renderDays(anim){
       <div class="day-body">
         ${buildSessionView(d, selLift, presc, saved, hasSave, isSkipped)}
       </div>`;
+    if(hasSave) { card.classList.add('saved-day'); card.classList.add('day-saved'); }
+    if(isSkipped) { card.classList.add('skipped'); card.classList.add('day-skipped'); }
     scroll.appendChild(card);
 
     if(selLift&&!hasSave&&saved?.prefilled){
@@ -1929,6 +1948,7 @@ function skipDay(d) {
     const prefill = getActivePlan().dayLifts[d-1] ? getLog(currentWeek,d) : {};
     setLog(currentWeek, d, {...(prefill||{}), skipped:true, saved:false, ts:Date.now()});
     renderAll();
+    setTimeout(() => autoOpenNextDay(), 300);
     // Auto-advance to next unsaved, non-skipped day
     const nextDay = [1,2,3,4].find(i => i > d && !getLog(currentWeek,i)?.saved && !getLog(currentWeek,i)?.skipped);
     if(nextDay) {
@@ -2049,6 +2069,7 @@ function saveDay(d){
   }
   const card=document.getElementById(`dc-${d}`);
   card.classList.add('saved-day');
+  card.classList.add('day-saved');
   const chk=card.querySelector('.day-check');
   chk.textContent='✓';chk.style.background='var(--green2)';chk.style.borderColor='var(--green)';chk.style.color='var(--green)';
   document.getElementById(`sb-${d}`).textContent='✓ Saved';
@@ -2058,6 +2079,7 @@ function saveDay(d){
     localStorage.setItem('ll_cycle_start', Date.now().toString());
   }
   renderHeader();renderDots();updateProgressBar();checkCycleComplete();
+  setTimeout(() => autoOpenNextDay(), 300);
   haptic(50);
 
   if(currentWeek===1){
@@ -3641,6 +3663,36 @@ function migratePRHistory() {
       localStorage.setItem('ll_pr_history_'+key, JSON.stringify(history));
     }
   });
+}
+
+
+function autoOpenNextDay() {
+  if(!activePlan || !PROGRAMS[activePlan]) return;
+  // Find first unsaved, non-skipped day in current week
+  for(let d=1;d<=DAYS;d++) {
+    const e = getLog(currentWeek, d);
+    if(!e?.saved && !e?.skipped) {
+      // Close all, open this one
+      for(let i=1;i<=DAYS;i++) {
+        const body = document.getElementById(`dc-${i}`)?.querySelector('.day-body');
+        const chev = document.getElementById(`dc-${i}`)?.querySelector('.day-chevron');
+        if(body) body.style.display = 'none';
+        if(chev) chev.style.transform = '';
+      }
+      const card = document.getElementById(`dc-${d}`);
+      const body = card?.querySelector('.day-body');
+      const chev = card?.querySelector('.day-chevron');
+      if(body) {
+        body.style.display = 'block';
+        body.classList.add('animating');
+        setTimeout(() => body.classList.remove('animating'), 250);
+      }
+      if(chev) chev.style.transform = 'rotate(90deg)';
+      // Scroll to it smoothly
+      setTimeout(() => card?.scrollIntoView({behavior:'smooth', block:'start'}), 150);
+      break;
+    }
+  }
 }
 
 function showToast(msg){
