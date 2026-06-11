@@ -537,7 +537,7 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.pr-chart-wrap { height: 160px; padding-top: 12px; }
+.pr-chart-wrap { min-height: 200px; padding-top: 8px; }
 .pr-history-list { padding: 0 18px; }
 .pr-history-item {
   display: flex; justify-content: space-between; align-items: center;
@@ -1161,6 +1161,9 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         </div>
       </div>
     </div>
+  </div>
+  <div style="padding:1.25rem 1.5rem 2rem;text-align:center">
+    <button onclick="skipOnboarding()" style="background:none;border:none;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:0.5px;cursor:pointer;padding:8px 16px;border-radius:var(--rs);transition:color 0.15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Skip for now →</button>
   </div>
 </div>
 
@@ -2386,9 +2389,10 @@ function renderDashboard() {
   const nextEl = document.getElementById('dash-next-card');
   if (nextEl) {
     if (!activePlan) {
-      nextEl.innerHTML = '<div class="dash-card" style="text-align:center;padding:1.25rem">' +
-        '<div style="font-size:13px;color:var(--muted);margin-bottom:12px">No program selected</div>' +
-        '<button onclick="switchPage(\'profile\');goProfileScreen(\'profile-plans\')" style="padding:9px 22px;font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:var(--rs);cursor:pointer">Choose a Program →</button>' +
+      nextEl.innerHTML = '<div class="dash-card" style="border-left:3px solid var(--accent);padding:1.25rem">' +
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px">No program selected</div>' +
+        '<div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5">Choose a program or build your own to get started.</div>' +
+        '<button onclick="showObOverlay()" style="padding:10px 22px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:var(--rs);cursor:pointer;transition:all 0.15s" onmouseover="this.style.background=\'var(--accent)\';this.style.color=\'#111\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--accent)\'">Choose Program →</button>' +
         '</div>';
     } else {
       const next = getNextWorkout();
@@ -2614,6 +2618,8 @@ function applyTemplateAllWeeks(){
 }
 
 function renderDays(anim){
+  // Re-read from localStorage on every render so saved state is never stale
+  logData = JSON.parse(localStorage.getItem('ll_log') || '{}');
   const plan=getActivePlan();
   const scroll=document.getElementById('days-scroll');
   if(anim){scroll.classList.remove('slide-left','slide-right');void scroll.offsetWidth;scroll.classList.add('slide-'+anim);}
@@ -2967,24 +2973,15 @@ function renderPRs(){
     ? `${prsBroken} PR${prsBroken===1?'':'s'} broken this cycle`
     : null;
 
-  const hasAnyPR = MAIN_LIFTS.some(l => (setupData[l] || 0) > 0);
+  const cardsHTML = MAIN_LIFTS.map(l => {
+    const key = l.replace(/ /g,'_');
+    const currentPR = setupData[l] || 0;
+    const firstPR = parseFloat(localStorage.getItem('ll_first_pr_'+key) || '0');
+    const color = LIFT_COLORS[l];
 
-  let cardsHTML;
-  if(!hasAnyPR) {
-    cardsHTML = `<div class="pr-empty">
-      <div class="pr-empty-icon">🏆</div>
-      <div class="pr-empty-title">No PRs logged yet</div>
-      <div class="pr-empty-sub">Complete your first workout to start tracking your personal records</div>
-    </div>`;
-  } else {
-    cardsHTML = MAIN_LIFTS.map(l => {
-      const key = l.replace(/ /g,'_');
-      const currentPR = setupData[l] || 0;
-      const firstPR = parseFloat(localStorage.getItem('ll_first_pr_'+key) || '0');
-      const color = LIFT_COLORS[l];
-
-      let pctBadge;
-      if(firstPR > 0 && currentPR > 0) {
+    let pctBadge = '';
+    if(currentPR > 0) {
+      if(firstPR > 0) {
         const pct = Math.round(((currentPR - firstPR) / firstPR) * 100);
         if(pct > 0) pctBadge = `<span class="pr-pct-badge up">+${pct}%</span>`;
         else if(pct < 0) pctBadge = `<span class="pr-pct-badge down">${pct}%</span>`;
@@ -2992,57 +2989,64 @@ function renderPRs(){
       } else {
         pctBadge = `<span class="pr-pct-badge none">Baseline</span>`;
       }
+    }
 
-      const prHistory = JSON.parse(localStorage.getItem('ll_pr_history_'+key) || '[]');
-      const historyHTML = prHistory.length > 0
-        ? [...prHistory].reverse().map(p => `
-            <div class="pr-history-item">
-              <span class="pr-history-load">${p.load} ${weightUnit()}</span>
-              <span class="pr-history-date">${new Date(p.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
-            </div>`).join('')
-        : `<div style="padding:10px 0;font-size:13px;color:var(--muted2)">No history yet</div>`;
+    const prHistory = JSON.parse(localStorage.getItem('ll_pr_history_'+key) || '[]');
+    const historyHTML = prHistory.length > 0
+      ? [...prHistory].reverse().map(p => `
+          <div class="pr-history-item">
+            <span class="pr-history-load">${p.load} ${weightUnit()}</span>
+            <span class="pr-history-date">${new Date(p.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+          </div>`).join('')
+      : `<div style="padding:10px 0;font-size:13px;color:var(--muted2)">No history yet</div>`;
 
-      return `<div class="pr-lift-card" id="pr-card-${key}" style="--lift-clr:${color}">
-        <div class="pr-lift-card-header" onclick="togglePRCard('${key}')">
-          <div class="pr-lift-card-left">
-            <div class="pr-lift-card-name" style="color:${color}">${l}</div>
-            <div class="pr-weight-row">
-              <span class="pr-lift-card-load">${currentPR||'—'}</span>
-              ${currentPR?`<span class="pr-lift-card-unit">${weightUnit()}</span>`:''}
-            </div>
-            <div class="pr-orm-text">${currentPR?`~${currentPR} ${weightUnit()} est. 1RM`:'Tap to set your PR'}</div>
+    const weightDisplay = currentPR
+      ? `<div class="pr-weight-row">
+           <span class="pr-lift-card-load">${currentPR}</span>
+           <span class="pr-lift-card-unit">${weightUnit()}</span>
+         </div>
+         <div class="pr-orm-text">est. 1RM</div>`
+      : `<div class="pr-weight-row">
+           <span class="pr-lift-card-load" style="color:var(--muted2)">—</span>
+         </div>
+         <button onclick="event.stopPropagation();togglePRCard('${key}')" style="margin-top:8px;padding:6px 16px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:20px;cursor:pointer;transition:all 0.15s">Add 1RM →</button>`;
+
+    return `<div class="pr-lift-card" id="pr-card-${key}" style="border-left:3px solid ${color}">
+      <div class="pr-lift-card-header" onclick="togglePRCard('${key}')">
+        <div class="pr-lift-card-left">
+          <div class="pr-lift-card-name" style="color:${color}">${l}</div>
+          ${weightDisplay}
+        </div>
+        <div class="pr-lift-card-right">
+          ${pctBadge}
+          <span class="pr-card-chevron">›</span>
+        </div>
+      </div>
+      <div class="pr-lift-expand" id="pr-expand-${key}" style="display:none">
+        ${currentPR ? `<div class="pr-chart-wrap"><canvas id="pr-chart-${key}"></canvas></div>` : ''}
+        <div class="pr-history-list">${historyHTML}</div>
+        <div class="pr-edit-section">
+          <div class="pr-edit-label">${currentPR ? 'Edit' : 'Set'} 1RM (${weightUnit()})</div>
+          <div class="pr-edit-row">
+            <input class="pr-edit-input" type="number" min="0" step="2.5"
+              value="${currentPR||''}" placeholder="0"
+              id="pr_${key}"
+              oninput="onPRInput('${l}', this.value)"
+              onclick="event.stopPropagation()"/>
+            <button class="pr-calc-toggle" onclick="event.stopPropagation();toggleCalc('${key}')">Don't know?</button>
           </div>
-          <div class="pr-lift-card-right">
-            ${pctBadge}
-            <span class="pr-card-chevron">›</span>
+          <div class="pr-calc-box" id="calc_${key}">
+            <div class="pr-calc-row">
+              <div class="pr-calc-field"><label>Weight (${weightUnit()})</label><input type="number" min="0" step="2.5" placeholder="0" id="calcw_${key}"/></div>
+              <div class="pr-calc-field"><label>Reps</label><input type="number" min="1" max="30" placeholder="0" id="calcr_${key}"/></div>
+              <button class="pr-calc-btn" onclick="calcOneRM('${l}','${key}')">Calc</button>
+            </div>
+            <div class="pr-calc-result" id="calcres_${key}"></div>
           </div>
         </div>
-        <div class="pr-lift-expand" id="pr-expand-${key}" style="display:none">
-          <div class="pr-chart-wrap"><canvas id="pr-chart-${key}"></canvas></div>
-          <div class="pr-history-list">${historyHTML}</div>
-          <div class="pr-edit-section">
-            <div class="pr-edit-label">Edit PR (${weightUnit()})</div>
-            <div class="pr-edit-row">
-              <input class="pr-edit-input" type="number" min="0" step="2.5"
-                value="${currentPR||''}" placeholder="0"
-                id="pr_${key}"
-                oninput="onPRInput('${l}', this.value)"
-                onclick="event.stopPropagation()"/>
-              <button class="pr-calc-toggle" onclick="event.stopPropagation();toggleCalc('${key}')">Don't know?</button>
-            </div>
-            <div class="pr-calc-box" id="calc_${key}">
-              <div class="pr-calc-row">
-                <div class="pr-calc-field"><label>Weight (${weightUnit()})</label><input type="number" min="0" step="2.5" placeholder="0" id="calcw_${key}"/></div>
-                <div class="pr-calc-field"><label>Reps</label><input type="number" min="1" max="30" placeholder="0" id="calcr_${key}"/></div>
-                <button class="pr-calc-btn" onclick="calcOneRM('${l}','${key}')">Calc</button>
-              </div>
-              <div class="pr-calc-result" id="calcres_${key}"></div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-  }
+      </div>
+    </div>`;
+  }).join('');
 
   c.innerHTML = `
     <div class="pr-hero">
@@ -3093,7 +3097,7 @@ function renderPRChart(key) {
   setTimeout(() => {
     const dpr = window.devicePixelRatio || 1;
     const W = canvas.parentElement?.clientWidth || 300;
-    const H = 160;
+    const H = 200;
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
     canvas.width = W * dpr;
@@ -3101,7 +3105,7 @@ function renderPRChart(key) {
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    const PAD = {top: 36, bottom: 28, left: 10, right: 10};
+    const PAD = {top: 40, bottom: 32, left: 12, right: 12};
     const cw = W - PAD.left - PAD.right;
     const ch = H - PAD.top - PAD.bottom;
     const color = LIFT_COLORS[lift];
@@ -3120,70 +3124,98 @@ function renderPRChart(key) {
     const gx = i => isSingle ? PAD.left + cw/2 : PAD.left + (i/(vals.length-1))*cw;
     const gy = v => PAD.top + ch - ((v-lo)/rng)*ch;
 
-    ctx.clearRect(0,0,W,H);
+    function drawChart(progress) {
+      ctx.clearRect(0,0,W,H);
 
-    if(!isSingle) {
-      // Gradient fill
-      const grad = ctx.createLinearGradient(0, PAD.top, 0, H-PAD.bottom);
-      grad.addColorStop(0, color+'55');
-      grad.addColorStop(1, color+'05');
+      // Bottom axis line
       ctx.beginPath();
-      vals.forEach((v,i) => {
-        const x=gx(i), y=gy(v);
-        if(i===0){ctx.moveTo(x,y);return;}
-        const px=gx(i-1), py=gy(vals[i-1]), cx=(px+x)/2;
-        ctx.bezierCurveTo(cx,py,cx,y,x,y);
-      });
-      ctx.lineTo(gx(vals.length-1),H-PAD.bottom);
-      ctx.lineTo(gx(0),H-PAD.bottom);
-      ctx.closePath();
-      ctx.fillStyle=grad; ctx.fill();
-
-      // Line
-      ctx.beginPath();
-      ctx.strokeStyle=color; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.lineCap='round';
-      vals.forEach((v,i)=>{
-        const x=gx(i),y=gy(v);
-        if(i===0){ctx.moveTo(x,y);return;}
-        const px=gx(i-1),py=gy(vals[i-1]),cx=(px+x)/2;
-        ctx.bezierCurveTo(cx,py,cx,y,x,y);
-      });
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1;
+      ctx.moveTo(PAD.left, H - PAD.bottom);
+      ctx.lineTo(W - PAD.right, H - PAD.bottom);
       ctx.stroke();
+
+      if(!isSingle) {
+        // Animated clip: reveal from left
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, PAD.left + cw * progress, H);
+        ctx.clip();
+
+        // Gradient fill
+        const grad = ctx.createLinearGradient(0, PAD.top, 0, H-PAD.bottom);
+        grad.addColorStop(0, color+'44');
+        grad.addColorStop(1, color+'04');
+        ctx.beginPath();
+        vals.forEach((v,i) => {
+          const x=gx(i), y=gy(v);
+          if(i===0){ctx.moveTo(x,y);return;}
+          const px=gx(i-1), py=gy(vals[i-1]), cx=(px+x)/2;
+          ctx.bezierCurveTo(cx,py,cx,y,x,y);
+        });
+        ctx.lineTo(gx(vals.length-1),H-PAD.bottom);
+        ctx.lineTo(gx(0),H-PAD.bottom);
+        ctx.closePath();
+        ctx.fillStyle=grad; ctx.fill();
+
+        // Line
+        ctx.beginPath();
+        ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.lineCap='round';
+        vals.forEach((v,i)=>{
+          const x=gx(i),y=gy(v);
+          if(i===0){ctx.moveTo(x,y);return;}
+          const px=gx(i-1),py=gy(vals[i-1]),cx=(px+x)/2;
+          ctx.bezierCurveTo(cx,py,cx,y,x,y);
+        });
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Dots, labels, dates — only draw for points already revealed
+      vals.forEach((v,i)=>{
+        const x=gx(i), y=gy(v);
+        if(x > PAD.left + cw * progress + 10) return;
+
+        // Glow
+        ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2);
+        ctx.fillStyle=color+'20'; ctx.fill();
+        // Dot
+        ctx.beginPath(); ctx.arc(x,y,4.5,0,Math.PI*2);
+        ctx.fillStyle=color; ctx.fill();
+        // Center
+        ctx.beginPath(); ctx.arc(x,y,1.8,0,Math.PI*2);
+        ctx.fillStyle='#fff'; ctx.fill();
+
+        // Value pill
+        const label = v+' '+weightUnit();
+        ctx.font='bold 11px Barlow Condensed,sans-serif';
+        const tw=ctx.measureText(label).width;
+        const lx=Math.max(PAD.left+tw/2+6, Math.min(W-PAD.right-tw/2-6, x));
+        const ly=Math.max(18, y-16);
+        ctx.beginPath();
+        ctx.roundRect(lx-tw/2-6, ly-13, tw+12, 17, 8);
+        ctx.fillStyle=color+'cc'; ctx.fill();
+        ctx.fillStyle='#111'; ctx.textAlign='center';
+        ctx.fillText(label, lx, ly);
+
+        // Date below axis
+        ctx.font='10px Barlow Condensed,sans-serif'; ctx.fillStyle='rgba(120,122,133,0.9)';
+        const dateAlign = i===0 ? 'left' : (i===vals.length-1 ? 'right' : 'center');
+        ctx.textAlign=dateAlign;
+        const dx = i===0 ? Math.max(PAD.left, x) : (i===vals.length-1 ? Math.min(W-PAD.right, x) : x);
+        ctx.fillText(dates[i], dx, H-8);
+      });
     }
 
-    // All dots, labels and dates
-    vals.forEach((v,i)=>{
-      const x=gx(i), y=gy(v);
-
-      // Glow
-      ctx.beginPath(); ctx.arc(x,y,9,0,Math.PI*2);
-      ctx.fillStyle=color+'22'; ctx.fill();
-      // Dot
-      ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
-      ctx.fillStyle=color; ctx.fill();
-      // Center
-      ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2);
-      ctx.fillStyle='#fff'; ctx.fill();
-
-      // Value pill - nudge to stay within bounds
-      const label = v+' '+weightUnit();
-      ctx.font='bold 11px Barlow Condensed,sans-serif';
-      const tw=ctx.measureText(label).width;
-      const lx=Math.max(PAD.left+tw/2+6, Math.min(W-PAD.right-tw/2-6, x));
-      const ly=Math.max(18, y-16);
-      ctx.beginPath();
-      ctx.roundRect(lx-tw/2-6, ly-13, tw+12, 17, 8);
-      ctx.fillStyle=color+'dd'; ctx.fill();
-      ctx.fillStyle='#111'; ctx.textAlign='center';
-      ctx.fillText(label, lx, ly);
-
-      // Date below each dot
-      ctx.font='10px Barlow Condensed,sans-serif'; ctx.fillStyle='#666';
-      const dateAlign = i===0 ? 'left' : (i===vals.length-1 ? 'right' : 'center');
-      ctx.textAlign=dateAlign;
-      const dx = i===0 ? Math.max(PAD.left, x) : (i===vals.length-1 ? Math.min(W-PAD.right, x) : x);
-      ctx.fillText(dates[i], dx, H-6);
-    });
+    // Animate over 600ms
+    const dur = 600, start = performance.now();
+    function animate(now) {
+      const t = Math.min((now - start) / dur, 1);
+      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+      drawChart(ease);
+      if(t < 1) requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
   }, 80);
 }
 
@@ -3903,7 +3935,7 @@ function autoPopulateAllWeeks() {
   for(let w=1;w<=TOTAL_WEEKS;w++) {
     for(let d=1;d<=DAYS;d++) {
       const existing = getLog(w,d);
-      if(existing?.saved) continue;
+      if(existing?.saved || existing?.skipped) continue;
       const td = template[d];
       const lift = td ? td.lift : (plan.isGZCLP ? getGZCLPLiftForDay(w, d) : (plan.dayLifts[d-1] || ''));
       if(!lift) continue;
@@ -4007,13 +4039,11 @@ function buildSessionView(d, lift, presc, saved, hasSave, isSkipped) {
       const hasTM = !!presc.tm;
       sets531.forEach((s, i) => {
         const load = presc.tm ? Math.round(presc.tm * s.pct / 2.5)*2.5 : null;
-        const isTopSet = i === sets531.length - 1;
         let loadText;
         if(load) {
-          loadText = `<span class="session-set-load-gold">${load} ${u}</span>`;
+          loadText = `<span class="session-set-load-gold">${load} ${u}</span><span class="session-set-pct-sub" onclick="show1RMModal(${d},'${lift}')" style="cursor:pointer"> @ ${Math.round(s.pct*100)}%</span>`;
         } else {
-          loadText = `<span class="session-set-pct">${Math.round(s.pct*100)}%</span>`;
-          if(isTopSet) loadText += `<span class="session-1rm-link" onclick="showSet1RM(${d},'${lift}')"> · Set 1RM</span>`;
+          loadText = `<span class="session-set-pct" onclick="show1RMModal(${d},'${lift}')">${Math.round(s.pct*100)}%</span>`;
         }
         const amrap = s.amrap ? '<span style="font-size:11px;color:var(--accent);margin-left:6px">AMRAP</span>' : '';
         setsHtml += `<div class="session-set-row">
@@ -4021,15 +4051,6 @@ function buildSessionView(d, lift, presc, saved, hasSave, isSkipped) {
           <span class="session-set-text">${s.s}×${s.r} @ ${loadText}${amrap}</span>
         </div>`;
       });
-      if(!hasTM) {
-        setsHtml += `<div id="d${d}-1rm-panel" class="session-1rm-panel" style="display:none">
-          <div style="display:flex;align-items:center;gap:8px">
-            <input type="number" id="d${d}-1rm-val" class="session-1rm-input" min="0" step="2.5" placeholder="Enter 1RM">
-            <span style="font-size:12px;color:var(--muted)">${u}</span>
-            <button class="session-1rm-save" onclick="saveSet1RM(${d},'${lift}')">Save</button>
-          </div>
-        </div>`;
-      }
     } else if(presc.sets && presc.reps) {
       // 12-week: warmup rows + working sets
       const workLoad = presc.load;
@@ -4039,7 +4060,7 @@ function buildSessionView(d, lift, presc, saved, hasSave, isSkipped) {
       [[1, w1Load, 10, '60%'], [2, w2Load, 6, '80%']].forEach(([num, load, reps, pctStr]) => {
         const loadText = load
           ? `<span class="session-set-load-gold">${load} ${u}</span><span class="session-set-pct-sub">${pctStr}</span>`
-          : `<span class="session-set-pct">${pctStr}</span>`;
+          : `<span class="session-set-pct" onclick="show1RMModal(${d},'${lift}')">${pctStr}</span>`;
         setsHtml += `<div class="session-set-row">
           <span class="session-set-num">${num}</span>
           <span class="session-set-text">1×${reps} @ ${loadText}</span>
@@ -4048,23 +4069,14 @@ function buildSessionView(d, lift, presc, saved, hasSave, isSkipped) {
       // Working sets
       let workLoadText;
       if(workLoad) {
-        workLoadText = `<span class="session-set-load-gold">${workLoad} ${u}</span><span class="session-set-pct-sub">@ ${Math.round(presc.pct*100)}% 1RM</span>`;
+        workLoadText = `<span class="session-set-load-gold">${workLoad} ${u}</span><span class="session-set-pct-sub" onclick="show1RMModal(${d},'${lift}')" style="cursor:pointer"> @ ${Math.round(presc.pct*100)}% 1RM</span>`;
       } else {
-        workLoadText = `<span class="session-set-pct">${Math.round(presc.pct*100)}%</span><span class="session-1rm-link" onclick="showSet1RM(${d},'${lift}')"> · Set 1RM</span>`;
+        workLoadText = `<span class="session-set-pct" onclick="show1RMModal(${d},'${lift}')">${Math.round(presc.pct*100)}%</span>`;
       }
       setsHtml += `<div class="session-set-row">
         <span class="session-set-num">3</span>
         <span class="session-set-text">${presc.sets}×${presc.reps} @ ${workLoadText}</span>
       </div>`;
-      if(!workLoad) {
-        setsHtml += `<div id="d${d}-1rm-panel" class="session-1rm-panel" style="display:none">
-          <div style="display:flex;align-items:center;gap:8px">
-            <input type="number" id="d${d}-1rm-val" class="session-1rm-input" min="0" step="2.5" placeholder="Enter 1RM">
-            <span style="font-size:12px;color:var(--muted)">${u}</span>
-            <button class="session-1rm-save" onclick="saveSet1RM(${d},'${lift}')">Save</button>
-          </div>
-        </div>`;
-      }
     }
   } else {
     setsHtml = `<div style="font-size:13px;color:var(--muted);padding:8px 0">No lift assigned</div>`;
@@ -4527,6 +4539,16 @@ function viewProfileArchivedCycle(idx) {
 }
 
 
+function skipOnboarding() {
+  localStorage.setItem('ll_onboarding_seen', '1');
+  const ob = document.getElementById('onboarding');
+  if(ob) { ob.style.opacity='0'; setTimeout(()=>{ ob.style.display='none'; }, 400); }
+  document.querySelectorAll('.onboarding-hidden').forEach(el => el.classList.remove('onboarding-hidden'));
+  renderAll();
+  renderDashboard();
+  switchPage('log');
+}
+
 function obFinish() {
   const ob = document.getElementById('onboarding');
   localStorage.setItem('ll_onboarding_seen','1');
@@ -4738,6 +4760,97 @@ function saveSet1RM(d, lift) {
   if(promptLifts.every(function(l) { return setupData[l] > 0; })) {
     const banner = document.getElementById('missing-prs-banner');
     if(banner) banner.remove();
+  }
+}
+
+function show1RMModal(d, lift) {
+  document.getElementById('oneRM-modal-overlay')?.remove();
+  const existing = setupData[lift] || 0;
+  const key = lift.replace(/ /g,'_');
+  const u = weightUnit();
+  const overlay = document.createElement('div');
+  overlay.id = 'oneRM-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;transition:opacity 0.2s ease;';
+  overlay.innerHTML = `
+    <div id="oneRM-modal-card" style="background:var(--surface);border-radius:var(--r);padding:1.5rem;width:100%;max-width:360px;transform:scale(0.95);transition:transform 0.2s ease;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${lift}</div>
+      <div style="font-family:'Bebas Neue','Barlow Condensed',sans-serif;font-size:26px;letter-spacing:1px;color:var(--text);margin-bottom:${existing?'6px':'1.25rem'}">1 Rep Max</div>
+      ${existing ? `<div style="font-size:32px;font-family:'Bebas Neue','Barlow Condensed',sans-serif;color:var(--accent);margin-bottom:1.25rem;line-height:1">${existing} <span style="font-size:16px;color:var(--muted)">${u}</span></div>` : ''}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+        <input type="number" min="0" step="2.5" placeholder="Enter your 1RM" id="oneRM-input-${d}"
+          value="${existing || ''}"
+          style="flex:1;padding:10px 12px;font-size:16px;font-family:'Barlow Condensed',sans-serif;border:1px solid var(--border2);background:var(--surface2);color:var(--text);border-radius:var(--rs);outline:none;-webkit-appearance:none;appearance:none" />
+        <span style="font-size:13px;color:var(--muted);flex-shrink:0">${u}</span>
+      </div>
+      <div style="background:var(--surface2);border-radius:var(--rs);padding:10px 12px;margin-bottom:1rem;border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Don't know? Calculate it</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" min="0" step="2.5" placeholder="Weight (${u})" id="oneRM-calc-w-${d}"
+            style="flex:1;min-width:80px;padding:8px 10px;font-size:14px;font-family:'Barlow Condensed',sans-serif;border:1px solid var(--border2);background:var(--surface);color:var(--text);border-radius:var(--rs);outline:none;-webkit-appearance:none;appearance:none" />
+          <input type="number" min="1" max="30" placeholder="Reps" id="oneRM-calc-r-${d}"
+            style="width:68px;padding:8px 10px;font-size:14px;font-family:'Barlow Condensed',sans-serif;border:1px solid var(--border2);background:var(--surface);color:var(--text);border-radius:var(--rs);outline:none;-webkit-appearance:none;appearance:none" />
+          <button onclick="calc1RMModal(${d})" style="padding:8px 12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.5px;border:1px solid var(--border2);background:var(--surface3);color:var(--text);border-radius:var(--rs);cursor:pointer;flex-shrink:0">Calc</button>
+        </div>
+        <div id="oneRM-calc-result-${d}" style="font-size:12px;color:var(--accent);margin-top:6px;min-height:16px"></div>
+      </div>
+      <button onclick="save1RMModal(${d},'${lift}')" style="width:100%;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--accent);background:var(--accent);color:#111;cursor:pointer;margin-bottom:10px">Save</button>
+      <div onclick="close1RMModal()" style="text-align:center;font-size:13px;color:var(--muted);cursor:pointer;padding:4px 0;user-select:none">Cancel</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+    const card = document.getElementById('oneRM-modal-card');
+    if(card) card.style.transform = 'scale(1)';
+  });
+  overlay.addEventListener('click', e => { if(e.target === overlay) close1RMModal(); });
+}
+
+function calc1RMModal(d) {
+  const w = parseFloat(document.getElementById('oneRM-calc-w-' + d)?.value);
+  const r = parseFloat(document.getElementById('oneRM-calc-r-' + d)?.value);
+  const result = document.getElementById('oneRM-calc-result-' + d);
+  if(!w || !r || r < 1) { if(result) result.textContent = 'Enter weight and reps above'; return; }
+  const est = Math.round((w * (1 + r / 30)) / 2.5) * 2.5;
+  if(result) result.innerHTML = `Est. 1RM: <strong>${est} ${weightUnit()}</strong> &nbsp;·&nbsp; <span onclick="document.getElementById('oneRM-input-${d}').value=${est}" style="color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px">Use this</span>`;
+}
+
+function close1RMModal() {
+  const overlay = document.getElementById('oneRM-modal-overlay');
+  if(!overlay) return;
+  overlay.style.opacity = '0';
+  setTimeout(() => overlay.remove(), 200);
+}
+
+function save1RMModal(d, lift) {
+  const input = document.getElementById('oneRM-input-' + d);
+  if(!input || !input.value) { showToast('Enter a 1RM value'); return; }
+  const val = parseFloat(input.value);
+  if(!val || val <= 0) { showToast('Enter a valid 1RM'); return; }
+  const key = lift.replace(/ /g,'_');
+  if(!localStorage.getItem('ll_first_pr_' + key)) {
+    localStorage.setItem('ll_first_pr_' + key, String(val));
+  }
+  const hist = JSON.parse(localStorage.getItem('ll_pr_history_' + key) || '[]');
+  const prev = setupData[lift];
+  if(val !== prev) {
+    hist.push({ load: val, date: Date.now() });
+    localStorage.setItem('ll_pr_history_' + key, JSON.stringify(hist));
+  }
+  setupData[lift] = val;
+  localStorage.setItem('ll_setup', JSON.stringify(setupData));
+  close1RMModal();
+  showToast(lift + ' 1RM saved');
+  const presc = getPrescription(currentWeek, lift, d);
+  const saved = getLog(currentWeek, d);
+  const dayCard = document.getElementById('dc-' + d);
+  if(dayCard) {
+    const dayBody = dayCard.querySelector('.day-body');
+    if(dayBody) dayBody.innerHTML = buildSessionView(d, lift, presc, saved, saved && saved.saved, saved && (saved.skipped || false));
+  }
+  const plan = getActivePlan();
+  const promptLifts = plan.isGZCLP ? plan.promptLifts : MAIN_LIFTS;
+  if(promptLifts.every(l => setupData[l] > 0)) {
+    document.getElementById('missing-prs-banner')?.remove();
   }
 }
 
