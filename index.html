@@ -473,50 +473,107 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
 
 
 /* PRs REDESIGN */
+.pr-hero {
+  padding: 1.75rem 1.25rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.pr-hero-title {
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 44px; color: var(--text); line-height: 1; letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.pr-hero-sub { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.pr-hero-badge {
+  display: inline-flex; align-items: center;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--accent); background: var(--accent2);
+  border: 1px solid rgba(240,192,64,0.3); border-radius: 20px; padding: 4px 12px;
+}
+.pr-cards { padding: 1rem 1rem 0; }
+
 .pr-lift-card {
-  background: var(--surface); border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--lift-clr, var(--border));
   border-radius: var(--r); margin-bottom: 10px; overflow: hidden;
   cursor: pointer; transition: border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 .pr-lift-card.expanded { border-color: var(--border2); }
 .pr-lift-card-header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 16px;
+  padding: 16px 18px;
 }
-.pr-lift-card-left { display: flex; flex-direction: column; gap: 4px; }
+.pr-lift-card-left { display: flex; flex-direction: column; gap: 2px; }
 .pr-lift-card-name {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
-  font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+  font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
 }
+.pr-weight-row { display: flex; align-items: baseline; gap: 5px; margin: 2px 0; }
 .pr-lift-card-load {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 30px;
-  font-weight: 700; color: var(--text); line-height: 1; letter-spacing: 0.5px;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 48px; color: var(--text); line-height: 1; letter-spacing: 0.5px;
 }
-.pr-lift-card-unit { font-size: 14px; color: var(--muted); margin-left: 4px; }
-.pr-lift-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.pr-lift-card-unit { font-size: 16px; color: var(--muted); }
+.pr-orm-text { font-size: 12px; color: var(--muted2); }
+.pr-lift-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .pr-pct-badge {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700;
-  padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap;
 }
-.pr-pct-badge.up { color: #5ddb8a; }
-.pr-pct-badge.down { color: #ff6060; }
-.pr-pct-badge.none { color: var(--muted2); }
+.pr-pct-badge.up { background: var(--green2); border: 1px solid var(--green); color: var(--green); }
+.pr-pct-badge.down { background: rgba(255,96,96,0.1); border: 1px solid #ff6060; color: #ff6060; }
+.pr-pct-badge.none { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2); }
+.pr-card-chevron {
+  font-size: 20px; color: var(--muted2); line-height: 1;
+  transition: transform 0.22s ease;
+}
+.pr-lift-card.expanded .pr-card-chevron { transform: rotate(90deg); }
+
+.pr-lift-expand { border-top: 1px solid var(--border); animation: prExpandDown 0.22s ease; }
+@keyframes prExpandDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pr-chart-wrap { height: 160px; padding-top: 12px; }
+.pr-history-list { padding: 0 18px; }
+.pr-history-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.pr-history-item:last-child { border-bottom: none; }
+.pr-history-load {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+  font-weight: 700; color: var(--text);
+}
+.pr-history-date { font-size: 12px; color: var(--muted); }
+
+.pr-edit-section { padding: 14px 18px 18px; border-top: 1px solid var(--border); }
+.pr-edit-label {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted2); margin-bottom: 8px;
+}
+.pr-edit-row { display: flex; align-items: center; gap: 10px; }
 .pr-edit-input {
-  width: 84px; padding: 9px 10px; font-size: 15px; font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 600; text-align: center; border-radius: var(--rs);
-  border: 1px solid var(--border); background: var(--surface2); color: var(--text); outline: none;
+  flex: 1; max-width: 120px; padding: 10px 12px; font-size: 16px;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-align: center;
+  border-radius: var(--rs); border: 1px solid var(--border2);
+  background: var(--surface2); color: var(--text); outline: none;
   transition: border-color 0.15s;
 }
 .pr-edit-input:focus { border-color: var(--accent); }
-.pr-lift-expand { padding: 0 16px 16px; border-top: 1px solid var(--border); }
-.pr-chart-wrap { height: 160px; margin-bottom: 8px; margin-top: 12px; }
-.pr-history-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+
+.pr-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 4rem 2rem; text-align: center;
 }
-.pr-history-item:last-child { border-bottom: none; }
-.pr-history-load { font-weight: 700; color: var(--text); }
-.pr-history-date { color: var(--muted); font-size: 12px; }
+.pr-empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.pr-empty-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text); margin-bottom: 8px;
+}
+.pr-empty-sub { font-size: 14px; color: var(--muted); line-height: 1.5; max-width: 240px; }
 
 
 /* SESSION VIEW REDESIGN */
@@ -980,10 +1037,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 </div>
 
 <div id="page-prs" class="page">
-  <div class="inner-pad">
-    <div class="page-header" style="padding:0 0 1.25rem"><h2>Personal Records</h2><p>Your PRs power your training plan</p></div>
-    <div id="prs-content"></div>
-  </div>
+  <div id="prs-content"></div>
 </div>
 
 <div id="page-setup" class="page">
@@ -2138,55 +2192,112 @@ function saveSetup(){
 
 // PRs — 1RM input, drives all training weights
 function renderPRs(){
-  const c=document.getElementById('prs-content');
-  const cards = MAIN_LIFTS.map(l => {
-    const key = l.replace(/ /g,'_');
-    const currentPR = setupData[l] || 0;
-    const firstPR = parseFloat(localStorage.getItem('ll_first_pr_'+key) || '0');
-    let pctBadge = '';
-    if(firstPR > 0 && currentPR > 0) {
-      const pct = Math.round(((currentPR - firstPR) / firstPR) * 100);
-      if(pct > 0) pctBadge = `<span class="pr-pct-badge up">+${pct}%</span>`;
-      else if(pct < 0) pctBadge = `<span class="pr-pct-badge down">${pct}%</span>`;
-      else pctBadge = `<span class="pr-pct-badge none">—</span>`;
-    }
-    return `<div class="pr-lift-card" id="pr-card-${key}">
-      <div class="pr-lift-card-header" onclick="togglePRCard('${key}')">
-        <div class="pr-lift-card-left">
-          <div class="pr-lift-card-name" style="color:${LIFT_COLORS[l]}">${l}</div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-            <span class="pr-lift-card-load">${currentPR||'—'}</span>
-            <span class="pr-lift-card-unit">${weightUnit()}</span>
+  const c = document.getElementById('prs-content');
+
+  // Count PRs broken this cycle
+  const cycleStart = parseInt(localStorage.getItem('ll_cycle_start') || '0');
+  let prsBroken = 0;
+  if(cycleStart > 0) {
+    MAIN_LIFTS.forEach(l => {
+      const key = l.replace(/ /g,'_');
+      const hist = JSON.parse(localStorage.getItem('ll_pr_history_'+key) || '[]');
+      prsBroken += hist.filter(p => p.date > cycleStart).length;
+    });
+  }
+  const badgeText = prsBroken > 0
+    ? `${prsBroken} PR${prsBroken===1?'':'s'} broken this cycle`
+    : null;
+
+  const hasAnyPR = MAIN_LIFTS.some(l => (setupData[l] || 0) > 0);
+
+  let cardsHTML;
+  if(!hasAnyPR) {
+    cardsHTML = `<div class="pr-empty">
+      <div class="pr-empty-icon">🏆</div>
+      <div class="pr-empty-title">No PRs logged yet</div>
+      <div class="pr-empty-sub">Complete your first workout to start tracking your personal records</div>
+    </div>`;
+  } else {
+    cardsHTML = MAIN_LIFTS.map(l => {
+      const key = l.replace(/ /g,'_');
+      const currentPR = setupData[l] || 0;
+      const firstPR = parseFloat(localStorage.getItem('ll_first_pr_'+key) || '0');
+      const color = LIFT_COLORS[l];
+
+      let pctBadge;
+      if(firstPR > 0 && currentPR > 0) {
+        const pct = Math.round(((currentPR - firstPR) / firstPR) * 100);
+        if(pct > 0) pctBadge = `<span class="pr-pct-badge up">+${pct}%</span>`;
+        else if(pct < 0) pctBadge = `<span class="pr-pct-badge down">${pct}%</span>`;
+        else pctBadge = `<span class="pr-pct-badge none">No change</span>`;
+      } else {
+        pctBadge = `<span class="pr-pct-badge none">Baseline</span>`;
+      }
+
+      const prHistory = JSON.parse(localStorage.getItem('ll_pr_history_'+key) || '[]');
+      const historyHTML = prHistory.length > 0
+        ? [...prHistory].reverse().map(p => `
+            <div class="pr-history-item">
+              <span class="pr-history-load">${p.load} ${weightUnit()}</span>
+              <span class="pr-history-date">${new Date(p.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+            </div>`).join('')
+        : `<div style="padding:10px 0;font-size:13px;color:var(--muted2)">No history yet</div>`;
+
+      return `<div class="pr-lift-card" id="pr-card-${key}" style="--lift-clr:${color}">
+        <div class="pr-lift-card-header" onclick="togglePRCard('${key}')">
+          <div class="pr-lift-card-left">
+            <div class="pr-lift-card-name" style="color:${color}">${l}</div>
+            <div class="pr-weight-row">
+              <span class="pr-lift-card-load">${currentPR||'—'}</span>
+              ${currentPR?`<span class="pr-lift-card-unit">${weightUnit()}</span>`:''}
+            </div>
+            <div class="pr-orm-text">${currentPR?`~${currentPR} ${weightUnit()} est. 1RM`:'Tap to set your PR'}</div>
+          </div>
+          <div class="pr-lift-card-right">
             ${pctBadge}
+            <span class="pr-card-chevron">›</span>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <input class="pr-edit-input" type="number" min="0" step="2.5"
-            value="${currentPR||''}" placeholder="0"
-            id="pr_${key}"
-            oninput="onPRInput('${l}', this.value)"
-            onclick="event.stopPropagation()"/>
-          <button class="pr-calc-toggle" onclick="event.stopPropagation();toggleCalc('${key}')">Don't know?</button>
+        <div class="pr-lift-expand" id="pr-expand-${key}" style="display:none">
+          <div class="pr-chart-wrap"><canvas id="pr-chart-${key}"></canvas></div>
+          <div class="pr-history-list">${historyHTML}</div>
+          <div class="pr-edit-section">
+            <div class="pr-edit-label">Edit PR (${weightUnit()})</div>
+            <div class="pr-edit-row">
+              <input class="pr-edit-input" type="number" min="0" step="2.5"
+                value="${currentPR||''}" placeholder="0"
+                id="pr_${key}"
+                oninput="onPRInput('${l}', this.value)"
+                onclick="event.stopPropagation()"/>
+              <button class="pr-calc-toggle" onclick="event.stopPropagation();toggleCalc('${key}')">Don't know?</button>
+            </div>
+            <div class="pr-calc-box" id="calc_${key}">
+              <div class="pr-calc-row">
+                <div class="pr-calc-field"><label>Weight (${weightUnit()})</label><input type="number" min="0" step="2.5" placeholder="0" id="calcw_${key}"/></div>
+                <div class="pr-calc-field"><label>Reps</label><input type="number" min="1" max="30" placeholder="0" id="calcr_${key}"/></div>
+                <button class="pr-calc-btn" onclick="calcOneRM('${l}','${key}')">Calc</button>
+              </div>
+              <div class="pr-calc-result" id="calcres_${key}"></div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="pr-calc-box" id="calc_${key}" style="padding:10px 16px">
-        <div class="pr-calc-row">
-          <div class="pr-calc-field"><label>Weight (${weightUnit()})</label><input type="number" min="0" step="2.5" placeholder="0" id="calcw_${key}"/></div>
-          <div class="pr-calc-field"><label>Reps</label><input type="number" min="1" max="30" placeholder="0" id="calcr_${key}"/></div>
-          <button class="pr-calc-btn" onclick="calcOneRM('${l}','${key}')">Calc</button>
-        </div>
-        <div class="pr-calc-result" id="calcres_${key}"></div>
-      </div>
-      <div class="pr-lift-expand" id="pr-expand-${key}" style="display:none">
-        <div class="pr-chart-wrap"><canvas id="pr-chart-${key}" height="100"></canvas></div>
-      </div>
+      </div>`;
+    }).join('');
+  }
+
+  c.innerHTML = `
+    <div class="pr-hero">
+      <div class="pr-hero-title">PERSONAL RECORDS</div>
+      <div class="pr-hero-sub">Your best lifts, tracked automatically</div>
+      ${badgeText ? `<span class="pr-hero-badge">${badgeText}</span>` : ''}
+    </div>
+    <div class="pr-cards">${cardsHTML}</div>
+    <div style="padding:0 1rem 5rem">
+      <button id="prs-save-btn" onclick="savePRs()" disabled
+        style="width:100%;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:not-allowed;transition:all 0.2s;">
+        Save 1 Rep Max
+      </button>
     </div>`;
-  }).join('');
-  c.innerHTML = `<div>${cards}</div>`;
-  c.innerHTML += `<button id="prs-save-btn" onclick="savePRs()" disabled
-    style="width:100%;margin-top:0.75rem;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--muted2);cursor:not-allowed;transition:all 0.2s;">
-    Save 1 Rep Max
-  </button>`;
 }
 function togglePRCard(key) {
   const expand = document.getElementById('pr-expand-'+key);
