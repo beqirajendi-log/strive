@@ -961,6 +961,58 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 }
 .plan-collapse-link:hover { color: var(--muted); }
 
+/* WELCOME SLIDES */
+#welcome-slides {
+  position: fixed; inset: 0; z-index: 998;
+  background: var(--bg); flex-direction: column;
+  overflow: hidden; opacity: 0; transition: opacity 0.4s ease;
+}
+.ws-skip {
+  position: absolute; top: 0; right: 0; padding: 1.25rem;
+  background: transparent; border: none; color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+  font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  cursor: pointer; z-index: 2;
+}
+.ws-slider-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.ws-slider { display: flex; width: 300%; height: 100%; transition: transform 0.3s ease; }
+.ws-slide {
+  width: 33.333%; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 5rem 2.5rem 2rem; text-align: center;
+}
+.ws-overline {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
+}
+.ws-headline {
+  font-family: 'Bebas Neue', sans-serif; font-size: 64px;
+  line-height: 0.95; color: var(--text); margin-bottom: 1.5rem;
+}
+.ws-body { font-size: 15px; color: var(--muted); max-width: 280px; line-height: 1.65; }
+.ws-bottom {
+  padding: 1.25rem 1.5rem 2.5rem;
+  display: flex; flex-direction: column; align-items: center; gap: 1.25rem;
+}
+.ws-dots { display: flex; gap: 8px; align-items: center; }
+.ws-dot { height: 6px; width: 6px; border-radius: 3px; background: var(--muted2); transition: all 0.25s ease; cursor: pointer; }
+.ws-dot.active { width: 20px; background: var(--accent); }
+.ws-cta {
+  width: 100%; padding: 15px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
+  font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  background: var(--accent); color: #111; border: none; border-radius: var(--r); cursor: pointer;
+}
+
+/* PR DISPLAY ENHANCEMENTS */
+.session-set-load-gold { color: var(--accent); font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; }
+.session-set-pct-sub { font-size: 11px; color: var(--muted); margin-left: 5px; }
+.session-1rm-link { font-size: 12px; color: var(--muted2); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; margin-left: 4px; }
+.session-1rm-link:hover { color: var(--accent); }
+.session-1rm-panel { margin-top: 8px; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--rs); }
+.session-1rm-input { flex: 1; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--rs); color: var(--text); font-size: 15px; font-family: 'Barlow Condensed', sans-serif; }
+.session-1rm-save { padding: 8px 14px; background: var(--surface3); border: 1px solid var(--border2); border-radius: var(--rs); color: var(--text); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; flex-shrink: 0; }
+
 /* DASHBOARD */
 .dash-greeting { padding: 1.5rem 0 1rem; }
 .dash-greeting-line { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 0.5px; color: var(--text); line-height: 1.1; }
@@ -1010,6 +1062,37 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     <div class="pr-title">NEW PR!</div>
     <div class="pr-lift-name" id="pr-lift-name"></div>
     <div class="pr-subtitle" id="pr-subtitle"></div>
+  </div>
+</div>
+
+<div id="welcome-slides" style="display:none">
+  <button class="ws-skip" id="ws-skip" onclick="dismissWelcomeSlides()">Skip</button>
+  <div class="ws-slider-wrap">
+    <div class="ws-slider" id="ws-slider">
+      <div class="ws-slide">
+        <div class="ws-overline">Welcome to Strive</div>
+        <div class="ws-headline">Train with<br>purpose.</div>
+        <div class="ws-body">Every session logged. Every rep counted. Every week building toward something.</div>
+      </div>
+      <div class="ws-slide">
+        <div class="ws-overline">Proven Programs</div>
+        <div class="ws-headline">Structure<br>that works.</div>
+        <div class="ws-body">Choose from science-backed strength programs designed to get you stronger every single week.</div>
+      </div>
+      <div class="ws-slide">
+        <div class="ws-overline">Your Progress</div>
+        <div class="ws-headline">Watch yourself<br>grow.</div>
+        <div class="ws-body">Track your PRs, volume, and streaks. The numbers don't lie.</div>
+      </div>
+    </div>
+  </div>
+  <div class="ws-bottom">
+    <div class="ws-dots">
+      <div class="ws-dot active" id="ws-dot-0" onclick="goWsSlide(0)"></div>
+      <div class="ws-dot" id="ws-dot-1" onclick="goWsSlide(1)"></div>
+      <div class="ws-dot" id="ws-dot-2" onclick="goWsSlide(2)"></div>
+    </div>
+    <button class="ws-cta" id="ws-cta" onclick="dismissWelcomeSlides()" style="display:none">Get Started &#x2192;</button>
   </div>
 </div>
 
@@ -3913,40 +3996,67 @@ function buildSessionView(d, lift, presc, saved, hasSave, isSkipped) {
       // 5/3/1: show 3 working sets
       const weekPlan = presc.weekPlan;
       const sets531 = weekPlan.sets || [];
+      const hasTM = !!presc.tm;
       sets531.forEach((s, i) => {
         const load = presc.tm ? Math.round(presc.tm * s.pct / 2.5)*2.5 : null;
-        const loadText = load
-          ? `<span class="session-set-load">${load} ${u}</span>`
-          : `<span class="session-set-pct" onclick="switchPage('prs')">${Math.round(s.pct*100)}%</span>`;
+        const isTopSet = i === sets531.length - 1;
+        let loadText;
+        if(load) {
+          loadText = `<span class="session-set-load-gold">${load} ${u}</span>`;
+        } else {
+          loadText = `<span class="session-set-pct">${Math.round(s.pct*100)}%</span>`;
+          if(isTopSet) loadText += `<span class="session-1rm-link" onclick="showSet1RM(${d},'${lift}')"> · Set 1RM</span>`;
+        }
         const amrap = s.amrap ? '<span style="font-size:11px;color:var(--accent);margin-left:6px">AMRAP</span>' : '';
         setsHtml += `<div class="session-set-row">
           <span class="session-set-num">${i+1}</span>
           <span class="session-set-text">${s.s}×${s.r} @ ${loadText}${amrap}</span>
         </div>`;
       });
+      if(!hasTM) {
+        setsHtml += `<div id="d${d}-1rm-panel" class="session-1rm-panel" style="display:none">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="d${d}-1rm-val" class="session-1rm-input" min="0" step="2.5" placeholder="Enter 1RM">
+            <span style="font-size:12px;color:var(--muted)">${u}</span>
+            <button class="session-1rm-save" onclick="saveSet1RM(${d},'${lift}')">Save</button>
+          </div>
+        </div>`;
+      }
     } else if(presc.sets && presc.reps) {
       // 12-week: warmup rows + working sets
       const workLoad = presc.load;
       const w1Load = workLoad ? Math.round(workLoad*0.6/2.5)*2.5 : null;
       const w2Load = workLoad ? Math.round(workLoad*0.8/2.5)*2.5 : null;
       // Warmup rows
-      [[1, w1Load, 10], [2, w2Load, 6]].forEach(([num, load, reps]) => {
+      [[1, w1Load, 10, '60%'], [2, w2Load, 6, '80%']].forEach(([num, load, reps, pctStr]) => {
         const loadText = load
-          ? `<span class="session-set-load">${load} ${u}</span>`
-          : `<span class="session-set-pct" onclick="switchPage('prs')">${num===1?'60%':'80%'}</span>`;
+          ? `<span class="session-set-load-gold">${load} ${u}</span><span class="session-set-pct-sub">${pctStr}</span>`
+          : `<span class="session-set-pct">${pctStr}</span>`;
         setsHtml += `<div class="session-set-row">
           <span class="session-set-num">${num}</span>
           <span class="session-set-text">1×${reps} @ ${loadText}</span>
         </div>`;
       });
       // Working sets
-      const loadText = workLoad
-        ? `<span class="session-set-load">${workLoad} ${u}</span>`
-        : `<span class="session-set-pct" onclick="switchPage('prs')">${Math.round(presc.pct*100)}%</span>`;
+      let workLoadText;
+      if(workLoad) {
+        workLoadText = `<span class="session-set-load-gold">${workLoad} ${u}</span><span class="session-set-pct-sub">@ ${Math.round(presc.pct*100)}% 1RM</span>`;
+      } else {
+        workLoadText = `<span class="session-set-pct">${Math.round(presc.pct*100)}%</span><span class="session-1rm-link" onclick="showSet1RM(${d},'${lift}')"> · Set 1RM</span>`;
+      }
       setsHtml += `<div class="session-set-row">
         <span class="session-set-num">3</span>
-        <span class="session-set-text">${presc.sets}×${presc.reps} @ ${loadText}</span>
+        <span class="session-set-text">${presc.sets}×${presc.reps} @ ${workLoadText}</span>
       </div>`;
+      if(!workLoad) {
+        setsHtml += `<div id="d${d}-1rm-panel" class="session-1rm-panel" style="display:none">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="d${d}-1rm-val" class="session-1rm-input" min="0" step="2.5" placeholder="Enter 1RM">
+            <span style="font-size:12px;color:var(--muted)">${u}</span>
+            <button class="session-1rm-save" onclick="saveSet1RM(${d},'${lift}')">Save</button>
+          </div>
+        </div>`;
+      }
     }
   } else {
     setsHtml = `<div style="font-size:13px;color:var(--muted);padding:8px 0">No lift assigned</div>`;
@@ -4423,22 +4533,67 @@ function obFinish() {
   }
 }
 
+let wsCurrentSlide = 0;
+
+function initWelcomeSlides() {
+  const ws = document.getElementById('welcome-slides');
+  if(!ws) { showObOverlay(); return; }
+  ws.style.display = 'flex';
+  requestAnimationFrame(function() { ws.style.opacity = '1'; });
+  let startX = 0;
+  ws.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+  ws.addEventListener('touchend', function(e) {
+    const dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) > 50) {
+      if(dx < 0 && wsCurrentSlide < 2) goWsSlide(wsCurrentSlide + 1);
+      else if(dx > 0 && wsCurrentSlide > 0) goWsSlide(wsCurrentSlide - 1);
+    }
+  }, { passive: true });
+}
+
+function goWsSlide(n) {
+  wsCurrentSlide = n;
+  const slider = document.getElementById('ws-slider');
+  if(slider) slider.style.transform = 'translateX(-' + (n * 33.333333) + '%)';
+  for(let i = 0; i < 3; i++) {
+    const dot = document.getElementById('ws-dot-' + i);
+    if(dot) dot.classList.toggle('active', i === n);
+  }
+  const skip = document.getElementById('ws-skip');
+  const cta = document.getElementById('ws-cta');
+  if(skip) skip.style.display = n < 2 ? '' : 'none';
+  if(cta) cta.style.display = n === 2 ? '' : 'none';
+}
+
+function dismissWelcomeSlides() {
+  const ws = document.getElementById('welcome-slides');
+  if(!ws) { showObOverlay(); return; }
+  ws.style.opacity = '0';
+  setTimeout(function() {
+    ws.style.display = 'none';
+    wsCurrentSlide = 0;
+    showObOverlay();
+  }, 400);
+}
+
+function showObOverlay() {
+  const ob = document.getElementById('onboarding');
+  if(!ob) return;
+  ob.style.display = 'flex';
+  ob.style.opacity = '0';
+  requestAnimationFrame(function() {
+    ob.style.transition = 'opacity 0.4s ease';
+    ob.style.opacity = '1';
+  });
+}
+
 function initOnboarding() {
   const seen = localStorage.getItem('ll_onboarding_seen');
   const ob = document.getElementById('onboarding');
   if(!ob) return;
+  ob.style.display = 'none';
   if(!seen) {
-    // Show after splash disappears (splash takes 2s + 0.6s fade)
-    setTimeout(() => {
-      ob.style.display = 'flex';
-      ob.style.opacity = '0';
-      requestAnimationFrame(() => {
-        ob.style.transition = 'opacity 0.4s ease';
-        ob.style.opacity = '1';
-      });
-    }, 2700);
-  } else {
-    ob.style.display = 'none';
+    setTimeout(function() { initWelcomeSlides(); }, 2700);
   }
 }
 
@@ -4536,6 +4691,43 @@ function autoOpenNextDay() {
       setTimeout(() => card?.scrollIntoView({behavior:'smooth', block:'start'}), 150);
       break;
     }
+  }
+}
+
+function showSet1RM(d, lift) {
+  const panel = document.getElementById('d' + d + '-1rm-panel');
+  if(panel) panel.style.display = panel.style.display === 'none' ? '' : 'none';
+}
+
+function saveSet1RM(d, lift) {
+  const input = document.getElementById('d' + d + '-1rm-val');
+  if(!input || !input.value) return;
+  const val = parseFloat(input.value);
+  if(!val || val <= 0) { showToast('Enter a valid 1RM'); return; }
+  const key = lift.replace(/ /g,'_');
+  if(!localStorage.getItem('ll_first_pr_' + key)) {
+    localStorage.setItem('ll_first_pr_' + key, String(val));
+  }
+  const hist = JSON.parse(localStorage.getItem('ll_pr_history_' + key) || '[]');
+  hist.push({ load: val, date: Date.now() });
+  localStorage.setItem('ll_pr_history_' + key, JSON.stringify(hist));
+  setupData[lift] = val;
+  localStorage.setItem('ll_setup', JSON.stringify(setupData));
+  showToast(lift + ' 1RM saved');
+  // Re-render just this day's body without closing the card
+  const presc = getPrescription(currentWeek, lift, d);
+  const saved = getLog(currentWeek, d);
+  const dayCard = document.getElementById('dc-' + d);
+  if(dayCard) {
+    const dayBody = dayCard.querySelector('.day-body');
+    if(dayBody) dayBody.innerHTML = buildSessionView(d, lift, presc, saved, saved && saved.saved, saved && saved.skipped || false);
+  }
+  // Remove missing-PRs banner if all lifts now have 1RMs
+  const plan = getActivePlan();
+  const promptLifts = plan.isGZCLP ? plan.promptLifts : MAIN_LIFTS;
+  if(promptLifts.every(function(l) { return setupData[l] > 0; })) {
+    const banner = document.getElementById('missing-prs-banner');
+    if(banner) banner.remove();
   }
 }
 
