@@ -118,13 +118,14 @@ body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--tex
 .week-dot.partial { background: var(--surface2); border-color: var(--border); color: var(--muted2); opacity: 0.6; }
 
 
-/* PREMIUM GRADIENT DAY CARDS */
+/* DARK DAY CARDS WITH TEAL ACCENT */
 .day-card {
   border-radius: 16px;
   margin-bottom: 12px;
   overflow: hidden;
-  background: linear-gradient(135deg, #005C3F 0%, #008089 50%, #61D2DA 100%);
-  border: 1px solid transparent;
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #008089;
   transition: transform 0.15s ease, opacity 0.2s;
 }
 .day-header {
@@ -136,8 +137,8 @@ body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--tex
   margin-bottom: 6px;
 }
 .day-label {
-  font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.65);
+  font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
 }
 .day-status-badge {
   font-family: 'Geist', sans-serif; font-size: 10px; font-weight: 700;
@@ -145,27 +146,27 @@ body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--tex
   padding: 3px 8px; border-radius: 20px;
 }
 .day-status-badge.completed {
-  background: rgba(93,219,138,0.2); border: 1px solid rgba(93,219,138,0.45); color: var(--green);
+  background: rgba(0,166,112,0.15); border: 1px solid rgba(0,166,112,0.3); color: #00A670;
 }
 .day-status-badge.badge-skipped {
-  background: rgba(255,130,80,0.15); border: 1px solid rgba(255,130,80,0.3); color: #ff8250;
+  background: rgba(72,72,72,0.3); border: 1px solid #484848; color: #484848;
 }
 .day-status-badge.upcoming {
-  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6);
+  background: rgba(0,128,137,0.15); border: 1px solid rgba(97,210,218,0.3); color: #61D2DA;
 }
 .day-lift-name {
   font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1.05;
-  color: #fff; margin-bottom: 4px; letter-spacing: 1px;
+  color: #F4F5F5; margin-bottom: 4px; letter-spacing: 1px;
 }
 .day-summary {
-  font-size: 13px; color: rgba(255,255,255,0.6);
+  font-size: 13px; color: var(--muted);
 }
 .day-header-bottom {
   display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
 }
 .day-chevron {
   display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,0.7); transition: transform 0.25s ease; flex-shrink: 0;
+  color: var(--muted2); transition: transform 0.25s ease; flex-shrink: 0;
 }
 .day-card.open .day-chevron { transform: rotate(180deg); }
 .day-body {
@@ -173,13 +174,13 @@ body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--tex
   transition: grid-template-rows 0.3s ease;
 }
 .day-card.open .day-body { grid-template-rows: 1fr; }
-.day-header-bottom .skip-link { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.55); background: none; }
-.day-header-bottom .skip-link:hover { border-color: rgba(255,255,255,0.5); color: rgba(255,255,255,0.85); }
+.day-header-bottom .skip-link { border-color: var(--border2); color: var(--muted2); background: none; }
+.day-header-bottom .skip-link:hover { border-color: var(--muted); color: var(--muted); }
 .day-body-inner {
   min-height: 0; overflow: hidden;
   padding: 16px 20px 20px;
-  border-top: 1px solid rgba(255,255,255,0.12);
-  background: rgba(0,0,0,0.25);
+  border-top: 1px solid #2e2e2e;
+  background: #242424;
 }
 .day-check { display: none; }
 
@@ -310,7 +311,7 @@ canvas { width: 100% !important; }
 .day-card.skipped[data-day="1"],
 .day-card.skipped[data-day="2"],
 .day-card.skipped[data-day="3"],
-.day-card.skipped[data-day="4"] { border-color: var(--border2); opacity: 0.6; }
+.day-card.skipped[data-day="4"] { opacity: 0.6; }
 .day-check.skipped-check { background: rgba(255,130,80,0.15); border-color: #ff8250; color: #ff8250; }
 .skip-day-btn {
   width: 100%; margin-top: 8px; padding: 8px;
@@ -667,15 +668,15 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
   width: 100%; margin-top: 20px; padding: 14px;
   font-family: 'Geist', sans-serif; font-size: 14px;
   font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-  border-radius: 12px; border: 1px solid rgba(0,128,137,0.5);
-  background: rgba(0,128,137,0.15); color: var(--accent-light); cursor: pointer;
+  border-radius: 12px; border: 1px solid #2e2e2e;
+  background: transparent; color: var(--muted); cursor: pointer;
   transition: all 0.15s;
 }
-.complete-day-btn:hover:not(.completed) {
-  background: var(--accent); border-color: var(--accent); color: #fff;
+.complete-day-btn:hover:not(.completed), .complete-day-btn:active:not(.completed) {
+  background: #008089; border-color: #008089; color: #fff;
 }
 .complete-day-btn.completed {
-  background: rgba(93,219,138,0.08); border-color: rgba(93,219,138,0.3); color: var(--green);
+  background: rgba(0,166,112,0.15); border-color: #00A670; color: #00A670;
 }
 
 
@@ -692,22 +693,16 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
 
 
 .day-card.day-saved {
-  background: #242424 !important;
-  border: 1px solid #484848 !important;
+  background: #1a1a1a !important;
+  border: 1px solid #2e2e2e !important;
+  border-left: 3px solid #00A670 !important;
 }
-.day-card.day-saved .day-label { color: var(--muted); }
-.day-card.day-saved .day-lift-name { color: var(--text); }
-.day-card.day-saved .day-summary { color: var(--muted); }
-.day-card.day-saved .day-chevron { color: var(--muted2); }
-.day-card.day-saved .day-header-bottom .skip-link { border-color: var(--border); color: var(--muted2); }
-.day-card.day-saved .day-body-inner { border-top: 1px solid var(--border); background: transparent; }
 .day-card.day-skipped {
   background: #1a1a1a !important;
-  border: 1px solid transparent !important;
-  opacity: 0.5 !important;
+  border: 1px solid #2e2e2e !important;
+  border-left: 3px solid #484848 !important;
+  opacity: 0.6 !important;
 }
-.day-card.day-skipped .day-lift-name { color: var(--muted); }
-.day-card.day-skipped .day-summary { color: var(--muted2); }
 
 /* GLOBAL BUTTON STYLES */
 .btn-primary {
