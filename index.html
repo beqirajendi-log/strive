@@ -133,12 +133,12 @@ body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--tex
   transition: transform 0.15s ease, opacity 0.2s;
 }
 .day-header {
-  padding: 20px 20px 16px;
+  padding: 16px 20px 14px;
   cursor: pointer; user-select: none;
 }
 .day-header-top {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 0;
 }
 .day-label {
   font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 600;
@@ -166,7 +166,7 @@ body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--tex
   font-size: 13px; color: var(--muted);
 }
 .day-header-bottom {
-  display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
+  display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
 }
 .day-chevron {
   display: flex; align-items: center; justify-content: center;
@@ -559,7 +559,7 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
 .pr-lift-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--lift-clr, var(--border));
+  border-left: 2px solid var(--lift-clr, var(--border));
   border-radius: var(--r); margin-bottom: 10px; overflow: hidden;
   cursor: pointer; transition: border-color 0.2s;
   -webkit-tap-highlight-color: transparent;
@@ -567,7 +567,7 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
 .pr-lift-card.expanded { border-color: var(--border2); }
 .pr-lift-card-header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 18px;
+  padding: 14px 16px;
 }
 .pr-lift-card-left { display: flex; flex-direction: column; gap: 2px; }
 .pr-lift-card-name {
@@ -577,14 +577,14 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
 .pr-weight-row { display: flex; align-items: baseline; gap: 5px; margin: 2px 0; }
 .pr-lift-card-load {
   font-family: 'Bebas Neue', 'Geist', sans-serif;
-  font-size: 48px; color: var(--text); line-height: 1; letter-spacing: 0.5px;
+  font-size: 32px; color: var(--text); line-height: 1; letter-spacing: 0.5px;
 }
-.pr-lift-card-unit { font-size: 16px; color: var(--muted); }
-.pr-orm-text { font-size: 12px; color: var(--muted2); }
-.pr-lift-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.pr-lift-card-unit { font-size: 13px; color: var(--muted); }
+.pr-orm-text { font-size: 11px; color: var(--muted2); }
+.pr-lift-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .pr-pct-badge {
-  font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 700;
-  padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap;
+  font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap;
 }
 .pr-pct-badge.up { background: var(--green2); border: 1px solid var(--green); color: var(--green); }
 .pr-pct-badge.down { background: rgba(255,96,96,0.1); border: 1px solid #ff6060; color: #ff6060; }
@@ -600,7 +600,7 @@ canvas.sparkline { width: 100% !important; height: 40px !important; }
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.pr-chart-wrap { min-height: 200px; padding-top: 8px; }
+.pr-chart-wrap { min-height: 140px; padding-top: 8px; }
 .pr-history-list { padding: 0 18px; }
 .pr-history-item {
   display: flex; justify-content: space-between; align-items: center;
@@ -1168,16 +1168,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .dash-recent-lift { font-size: 13px; font-weight: 600; color: var(--text); }
 .dash-recent-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
 .dash-recent-load { font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
-.dash-bw-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.dash-bw-label { font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
-.dash-bw-chevron { font-size: 18px; color: var(--muted); transition: transform 0.2s; }
-.dash-bw-card.open .dash-bw-chevron { transform: rotate(90deg); }
-.dash-bw-body { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1); }
-.dash-bw-card.open .dash-bw-body { max-height: 240px; }
-.dash-bw-body-inner { padding-top: 12px; }
-.dash-bw-input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.dash-bw-input { flex: 1; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--rs); color: var(--text); font-size: 15px; font-family: 'Geist', sans-serif; }
-.dash-bw-save { padding: 8px 16px; background: var(--surface3); border: 1px solid var(--border2); border-radius: var(--rs); color: var(--text); font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; flex-shrink: 0; }
 /* TRAINING CALENDAR */
 .cal-week-row { display: flex; gap: 4px; }
 .cal-pill { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 7px 2px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); min-width: 0; }
@@ -1381,28 +1371,11 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
       <div class="dash-card dash-streak-card" id="dash-streak-card"></div>
     </div>
     <div id="dash-next-card"></div>
-    <div id="dash-pr-section"></div>
     <div class="dash-card" id="dash-volume-card"></div>
     <div class="dash-card" id="dash-recent-card"></div>
     <div class="dash-card" id="dash-calendar-card"></div>
     <div class="dash-card" id="dash-cycle-card"></div>
     <div class="dash-card" id="dash-activity-card"></div>
-    <div class="dash-card dash-bw-card" id="dash-bw-card">
-      <div class="dash-bw-header" onclick="toggleBWCard()">
-        <div class="dash-bw-label">Bodyweight</div>
-        <div class="dash-bw-chevron">&#x203A;</div>
-      </div>
-      <div class="dash-bw-body">
-        <div class="dash-bw-body-inner">
-          <div class="dash-bw-input-row">
-            <input type="number" min="30" max="500" step="0.1" id="dash-bw-input" class="dash-bw-input" placeholder="Today's weight">
-            <span id="dash-bw-unit" style="font-size:12px;color:var(--muted)">lbs</span>
-            <button class="dash-bw-save" onclick="logBodyweight()">Log</button>
-          </div>
-          <canvas id="dash-bw-chart" height="90"></canvas>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -2421,7 +2394,6 @@ const DASH_QUOTES = [
   "Earn it.",
   "The pain you feel today is the strength you feel tomorrow."
 ];
-let dashBWChart = null;
 
 function getDashQuote() {
   const today = new Date().toDateString();
@@ -2575,14 +2547,6 @@ function renderDashboard() {
     }
   }
 
-  const prEl = document.getElementById('dash-pr-section');
-  if (prEl) {
-    const pr = getRecentPR();
-    prEl.innerHTML = pr
-      ? '<div class="dash-pr-banner"><span style="font-size:18px;flex-shrink:0">🏆</span><div class="dash-pr-text">New PR this week — ' + pr.lift + ': ' + pr.load + ' ' + u + '</div></div>'
-      : '';
-  }
-
   const volEl = document.getElementById('dash-volume-card');
   if (volEl) {
     const wv = getWeeklyVolume();
@@ -2638,62 +2602,11 @@ function renderDashboard() {
     }
   }
 
-  const bwUnit = document.getElementById('dash-bw-unit');
-  if (bwUnit) bwUnit.textContent = u;
-  const bwCard = document.getElementById('dash-bw-card');
-  if (bwCard && bwCard.classList.contains('open')) renderBWChart();
   renderCalendar();
   renderCycleProgress();
   renderActivityMetrics();
 }
 
-function toggleBWCard() {
-  const card = document.getElementById('dash-bw-card');
-  if (!card) return;
-  card.classList.toggle('open');
-  if (card.classList.contains('open')) renderBWChart();
-}
-
-function logBodyweight() {
-  const input = document.getElementById('dash-bw-input');
-  if (!input || !input.value) return;
-  const val = parseFloat(input.value);
-  if (!val || val <= 0) { showToast('Enter a valid weight'); return; }
-  const today = new Date().toISOString().slice(0, 10);
-  const entries = JSON.parse(localStorage.getItem('ll_bodyweight') || '[]');
-  const idx = entries.findIndex(function(e) { return e.date === today; });
-  if (idx >= 0) entries[idx].val = val;
-  else entries.push({ date: today, val: val });
-  if (entries.length > 60) entries.shift();
-  localStorage.setItem('ll_bodyweight', JSON.stringify(entries));
-  input.value = '';
-  showToast('Bodyweight logged');
-  renderBWChart();
-}
-
-function renderBWChart() {
-  const canvas = document.getElementById('dash-bw-chart');
-  if (!canvas) return;
-  const entries = JSON.parse(localStorage.getItem('ll_bodyweight') || '[]').slice(-8);
-  if (dashBWChart) { dashBWChart.destroy(); dashBWChart = null; }
-  if (entries.length < 2) { canvas.style.display = 'none'; return; }
-  canvas.style.display = '';
-  dashBWChart = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels: entries.map(function(e) { const d = new Date(e.date + 'T12:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }),
-      datasets: [{ data: entries.map(function(e) { return e.val; }), borderColor: '#008089', backgroundColor: 'rgba(0,128,137,0.07)', borderWidth: 2, fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: '#008089' }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y + ' ' + weightUnit(); } } } },
-      scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.35)', font: { size: 9 } } },
-        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.35)', font: { size: 9 } } }
-      }
-    }
-  });
-}
 
 function switchPage(p){
   const pageId = p === 'profile' ? 'page-profile' : 'page-'+p;
@@ -2917,8 +2830,6 @@ function renderDays(anim){
           <span class="day-label">Day ${d}${dayTypeLabel}</span>
           <span class="day-status-badge ${badgeClass}" id="dc-badge-${d}">${badgeText}</span>
         </div>
-        <div class="day-lift-name">${liftDisplay}</div>
-        ${prescSummary ? `<div class="day-summary">${prescSummary}</div>` : ''}
         <div class="day-header-bottom">
           <button class="skip-link${isSkipped?' skip-active':''}" onclick="event.stopPropagation();haptic(10);skipDay(${d})">${isSkipped?'Unskip':'Skip'}</button>
           <span class="day-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
@@ -2927,6 +2838,7 @@ function renderDays(anim){
       <div class="day-body">
         <div class="day-body-inner">
           <div class="day-check" style="display:none"></div>
+          ${selLift ? `<div class="day-lift-name" style="margin-bottom:12px">${selLift}</div>` : ''}
           ${buildSessionView(d, selLift, presc, saved, hasSave, isSkipped)}
         </div>
       </div>`;
@@ -4992,46 +4904,37 @@ function renderCycleProgress() {
   el.style.display = '';
   const plan = getActivePlan();
   const totalWeeks = plan.weeks || TOTAL_WEEKS;
-  // Count saved days per week
-  const weekCounts = [];
-  for(let w = 1; w <= totalWeeks; w++) {
-    let count = 0;
-    for(let d = 1; d <= (plan.days || DAYS); d++) {
-      if(getLog(w, d)?.saved) count++;
-    }
-    weekCounts.push(count);
-  }
   const daysPerWeek = plan.days || DAYS;
-  const completedWeeks = weekCounts.filter(c => c >= daysPerWeek).length;
+  let completedWeeks = 0;
+  let totalSessions = 0;
+  for(let w = 1; w <= totalWeeks; w++) {
+    let wCount = 0;
+    for(let d = 1; d <= daysPerWeek; d++) {
+      if(getLog(w, d)?.saved) { wCount++; totalSessions++; }
+    }
+    if(wCount >= daysPerWeek) completedWeeks++;
+  }
   const pct = Math.round((completedWeeks / totalWeeks) * 100);
-  // Bar
-  const barHtml = `<div style="height:6px;background:var(--surface3);border-radius:3px;margin:10px 0 14px;overflow:hidden">
-    <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#008089,#61D2DA);border-radius:3px;transition:width 0.6s ease"></div>
-  </div>`;
-  // Chart
   const canvasId = 'cycle-chart-canvas';
   el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Cycle Progress</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--text);letter-spacing:0.5px">${pct}%</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Cycle Progress</div>
+    <div style="position:relative;width:140px;height:140px;margin:0 auto 12px">
+      <canvas id="${canvasId}"></canvas>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--text);line-height:1;letter-spacing:0.5px">${pct}%</div>
+      </div>
     </div>
-    ${barHtml}
-    <canvas id="${canvasId}" height="60"></canvas>`;
+    <div style="text-align:center;font-size:12px;color:var(--muted)">Week ${currentWeek} of ${totalWeeks} · ${totalSessions} sessions</div>`;
   if(window._cycleChart) { try{ window._cycleChart.destroy(); }catch(e){} window._cycleChart = null; }
   const ctx = document.getElementById(canvasId)?.getContext('2d');
   if(!ctx || typeof Chart === 'undefined') return;
-  const labels = weekCounts.map((_,i) => 'W'+(i+1));
-  const colors = weekCounts.map((c,i) => {
-    if(c >= daysPerWeek) return '#008089';
-    if(i+1 === currentWeek) return '#61D2DA';
-    return '#2e2e2e';
-  });
+  const remaining = Math.max(totalWeeks - completedWeeks, 0);
   window._cycleChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets: [{ data: weekCounts.map(c => Math.min(c, daysPerWeek)), backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.raw}/${daysPerWeek} days` } } },
-      scales: { x: { grid: { display: false }, ticks: { color: '#55565f', font: { size: 9, weight: '700' } }, border: { display: false } },
-        y: { display: false, max: daysPerWeek + 1 } } }
+    type: 'doughnut',
+    data: { datasets: [{ data: [completedWeeks || 0.001, remaining || 0.001], backgroundColor: ['#008089', '#2e2e2e'], borderWidth: 0, hoverOffset: 0 }] },
+    options: { responsive: true, maintainAspectRatio: true, cutout: '76%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { duration: 600 } }
   });
 }
 
@@ -5073,7 +4976,7 @@ function renderActivityMetrics() {
       <div class="act-metric-cell"><div class="act-metric-val">${lastWeek}</div><div class="act-metric-label">Last Week</div></div>
       <div class="act-metric-cell"><div class="act-metric-val">${thisMonth}</div><div class="act-metric-label">This Month</div></div>
     </div>
-    <canvas id="${canvasId}" height="56" style="margin-top:12px"></canvas>`;
+    <div style="height:80px;position:relative;margin-top:12px"><canvas id="${canvasId}"></canvas></div>`;
   if(window._activityChart) { try{ window._activityChart.destroy(); }catch(e){} window._activityChart = null; }
   const ctx = document.getElementById(canvasId)?.getContext('2d');
   if(!ctx || typeof Chart === 'undefined') return;
@@ -5081,10 +4984,10 @@ function renderActivityMetrics() {
   window._activityChart = new Chart(ctx, {
     type: 'bar',
     data: { labels: sparkLabels, datasets: [{ data: sparkData,
-      backgroundColor: sparkData.map((_,i) => i === 7 ? '#61D2DA' : '#008089'),
-      borderRadius: 4, borderSkipped: false }] },
+      backgroundColor: sparkData.map(() => '#008089'),
+      borderRadius: 3, borderSkipped: false }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw} sessions` } } },
-      scales: { x: { grid: { display: false }, ticks: { color: '#55565f', font: { size: 9, weight: '700' } }, border: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { display: false }, border: { display: false } },
         y: { display: false, max: maxVal + 1 } } }
   });
 }
@@ -5131,7 +5034,7 @@ function saveSet1RM(d, lift) {
   const dayCard = document.getElementById('dc-' + d);
   if(dayCard) {
     const bodyInner = dayCard.querySelector('.day-body-inner');
-    if(bodyInner) bodyInner.innerHTML = `<div class="day-check" style="display:none"></div>` + buildSessionView(d, lift, presc, saved, saved && saved.saved, saved && saved.skipped || false);
+    if(bodyInner) bodyInner.innerHTML = `<div class="day-check" style="display:none"></div>` + (lift ? `<div class="day-lift-name" style="margin-bottom:12px">${lift}</div>` : '') + buildSessionView(d, lift, presc, saved, saved && saved.saved, saved && saved.skipped || false);
   }
   // Remove missing-PRs banner if all lifts now have 1RMs
   const plan = getActivePlan();
@@ -5224,7 +5127,7 @@ function save1RMModal(d, lift) {
   const dayCard = document.getElementById('dc-' + d);
   if(dayCard) {
     const bodyInner = dayCard.querySelector('.day-body-inner');
-    if(bodyInner) bodyInner.innerHTML = `<div class="day-check" style="display:none"></div>` + buildSessionView(d, lift, presc, saved, saved && saved.saved, saved && (saved.skipped || false));
+    if(bodyInner) bodyInner.innerHTML = `<div class="day-check" style="display:none"></div>` + (lift ? `<div class="day-lift-name" style="margin-bottom:12px">${lift}</div>` : '') + buildSessionView(d, lift, presc, saved, saved && saved.saved, saved && (saved.skipped || false));
   }
   const plan = getActivePlan();
   const promptLifts = plan.isGZCLP ? plan.promptLifts : MAIN_LIFTS;
