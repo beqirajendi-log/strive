@@ -103,25 +103,6 @@
         </div>
       </div>
     </div>
-    <div class="ob-plan-card" onclick="togglePlanDetail(this,'gzclp')">
-      <div class="ob-plan-card-top">
-        <div class="ob-plan-content">
-          <div class="ob-plan-name">GZCLP</div>
-          <div class="ob-plan-desc">Linear progression for beginners. Add weight every session, master the big movements.</div>
-        </div>
-        <div class="ob-plan-arrow">›</div>
-      </div>
-      <div class="ob-plan-expand" onclick="event.stopPropagation()">
-        <div class="ob-plan-expand-inner">
-          <div class="plan-detail-label">About</div>
-          <div class="plan-detail-text">A beginner linear progression program by Cody Lefever. Three days per week, three tiers of lifts — T1 for heavy strength work, T2 for volume, and T3 for accessories. Add weight every session until you can't, then the program automatically adjusts.</div>
-          <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
-          <div class="plan-detail-text">Perfect for beginners or those returning after a long break who want to build a strength base as fast as possible with a simple, self-correcting structure.</div>
-          <button class="plan-confirm-btn" onclick="obFinish(); selectPlan('gzclp')">Start this program →</button>
-          <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
-        </div>
-      </div>
-    </div>
   </div>
   <div style="padding:1.25rem 1.5rem 2rem;text-align:center">
     <button onclick="skipOnboarding()" style="background:none;border:none;color:var(--muted);font-family:'Geist',sans-serif;font-size:14px;font-weight:600;letter-spacing:0.5px;cursor:pointer;padding:8px 16px;border-radius:var(--rs);transition:color 0.15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Skip for now →</button>
@@ -430,34 +411,6 @@
         </div>
       </div>
 
-      <div class="plan-card" id="plan-gzclp-card" onclick="togglePlanDetail(this,'gzclp')" style="cursor:pointer">
-        <div class="plan-card-header">
-          <div>
-            <div class="plan-card-title">GZCLP</div>
-            <div class="plan-card-sub">Linear progression for beginners</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-            <div id="plan-gzclp-badge" class="active-plan-badge" style="display:none">Active</div>
-            <div id="plan-gzclp-count" class="plan-completion-count"></div>
-          </div>
-        </div>
-        <div class="plan-card-phases">
-          <div class="plan-phase"><span style="color:#00A670">●</span> 3 days/week: A/B day alternation</div>
-          <div class="plan-phase"><span style="color:#00A670">●</span> T1: 5×3 heavy compound (+5 lbs/session)</div>
-          <div class="plan-phase"><span style="color:#00A670">●</span> T2: 3×10 accessory (+5 lbs/session)</div>
-          <div class="plan-phase"><span style="color:#00A670">●</span> T3: 2×15+ AMRAP</div>
-        </div>
-        <div class="plan-card-expand" onclick="event.stopPropagation()">
-          <div class="plan-card-expand-inner">
-            <div class="plan-detail-label">About</div>
-            <div class="plan-detail-text">A beginner linear progression program by Cody Lefever. Three days per week, three tiers of lifts — T1 for heavy strength work, T2 for volume, and T3 for accessories. Add weight every session until you can't, then the program automatically adjusts.</div>
-            <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
-            <div class="plan-detail-text">Perfect for beginners or those returning after a long break who want to build a strength base as fast as possible with a simple, self-correcting structure.</div>
-            <button class="plan-confirm-btn" onclick="selectPlan('gzclp')">Start this program →</button>
-            <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
-          </div>
-        </div>
-      </div>
     </div>
 
 
@@ -856,34 +809,6 @@
             <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
             <div class="plan-detail-text">Ideal for intermediate to advanced lifters who want a sustainable, no-frills program they can run indefinitely without burning out.</div>
             <button class="plan-confirm-btn" onclick="selectPlan('531')">Start this program →</button>
-            <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
-          </div>
-        </div>
-      </div>
-      <div class="plan-card" id="p-plan-gzclp-card" onclick="togglePlanDetail(this,'gzclp')" style="cursor:pointer">
-        <div class="plan-card-header">
-          <div>
-            <div class="plan-card-title">GZCLP</div>
-            <div class="plan-card-sub">Linear progression for beginners</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-            <div id="p-plan-gzclp-badge" class="active-plan-badge" style="display:none">Active</div>
-            <div id="p-plan-gzclp-count" class="plan-completion-count"></div>
-          </div>
-        </div>
-        <div class="plan-card-phases">
-          <div class="plan-phase"><span style="color:#00A670">●</span> 3 days/week: A/B day alternation</div>
-          <div class="plan-phase"><span style="color:#00A670">●</span> T1: 5×3 heavy compound (+5 lbs/session)</div>
-          <div class="plan-phase"><span style="color:#00A670">●</span> T2: 3×10 accessory (+5 lbs/session)</div>
-          <div class="plan-phase"><span style="color:#00A670">●</span> T3: 2×15+ AMRAP</div>
-        </div>
-        <div class="plan-card-expand" onclick="event.stopPropagation()">
-          <div class="plan-card-expand-inner">
-            <div class="plan-detail-label">About</div>
-            <div class="plan-detail-text">A beginner linear progression program by Cody Lefever. Three days per week, three tiers of lifts — T1 for heavy strength work, T2 for volume, and T3 for accessories. Add weight every session until you can't, then the program automatically adjusts.</div>
-            <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
-            <div class="plan-detail-text">Perfect for beginners or those returning after a long break who want to build a strength base as fast as possible with a simple, self-correcting structure.</div>
-            <button class="plan-confirm-btn" onclick="selectPlan('gzclp')">Start this program →</button>
             <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
           </div>
         </div>
