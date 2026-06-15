@@ -388,22 +388,6 @@ function renderDashboardHero() {
   document.getElementById('heroQuote').textContent = getDashQuote();
 }
 
-function getTrainingStreak() {
-  if (!activePlan) return 0;
-  const plan = getActivePlan();
-  let startWeek = currentWeek;
-  let hasCurrentWeek = false;
-  for (let d = 1; d <= plan.days; d++) { if (getLog(currentWeek, d)?.saved) { hasCurrentWeek = true; break; } }
-  if (!hasCurrentWeek) startWeek = currentWeek - 1;
-  let streak = 0;
-  for (let w = startWeek; w >= 1; w--) {
-    let hasSaved = false;
-    for (let d = 1; d <= plan.days; d++) { if (getLog(w, d)?.saved) { hasSaved = true; break; } }
-    if (hasSaved) streak++;
-    else break;
-  }
-  return streak;
-}
 
 function getNextWorkout() {
   if (!activePlan) return null;
@@ -465,38 +449,6 @@ function renderDashboard() {
   renderDashboardHero();
   const plan = activePlan ? getActivePlan() : null;
   const u = weightUnit();
-  const acct = (typeof accountData !== 'undefined') ? accountData : {};
-
-  const totalDays = plan ? plan.days : 4;
-  let doneDays = 0;
-  for (let d = 1; d <= totalDays; d++) { if (getLog(currentWeek, d)?.saved) doneDays++; }
-  const ringPct = totalDays > 0 ? doneDays / totalDays : 0;
-  const r = 32, cx = 38, cy = 38, circ = parseFloat((2 * Math.PI * r).toFixed(1));
-  const offset = parseFloat((circ * (1 - ringPct)).toFixed(1));
-  const ringEl = document.getElementById('dash-ring-card');
-  if (ringEl) {
-    ringEl.innerHTML = '<div class="dash-section-label">This Week</div>' +
-      '<svg width="76" height="76" viewBox="0 0 76 76">' +
-      '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="var(--border2)" stroke-width="5.5"/>' +
-      '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="var(--accent)" stroke-width="5.5"' +
-      ' stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '"' +
-      ' stroke-linecap="round" transform="rotate(-90 ' + cx + ' ' + cy + ')"/>' +
-      '<text x="' + cx + '" y="' + cy + '" text-anchor="middle" dominant-baseline="central"' +
-      ' font-family="\'Bebas Neue\',\'Geist\',sans-serif" font-size="17" fill="var(--text)" id="dash-ring-pct">0%</text>' +
-      '</svg>' +
-      '<div style="font-size:11px;color:var(--muted);margin-top:4px">' + doneDays + ' / ' + totalDays + ' sessions</div>';
-    animateCount(document.getElementById('dash-ring-pct'), Math.round(ringPct * 100), 600, v => v + '%');
-  }
-
-  const streak = getTrainingStreak();
-  const streakEl = document.getElementById('dash-streak-card');
-  if (streakEl) {
-    streakEl.innerHTML = '<div class="dash-section-label">Streak</div>' +
-      (streak > 0
-        ? '<div class="dash-streak-num" id="dash-streak-val">0</div><div class="dash-streak-sub">🔥 week' + (streak !== 1 ? 's' : '') + ' running</div>'
-        : '<div style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:4px">Start your<br>streak today</div>');
-    if(streak > 0) animateCount(document.getElementById('dash-streak-val'), streak, 600);
-  }
 
   const nextEl = document.getElementById('dash-next-card');
   if (nextEl) {
@@ -517,7 +469,7 @@ function renderDashboard() {
       } else if (next) {
         const liftColor = LIFT_COLORS[next.lift] || 'var(--accent)';
         nextEl.innerHTML = '<div class="dash-card" style="border-left:3px solid ' + liftColor + '">' +
-          '<div class="dash-next-label">Next Workout — Wk ' + next.week + ' · ' + next.dayLabel + '</div>' +
+          '<div class="dash-next-label">Today\'s Workout — Wk ' + next.week + ' · ' + next.dayLabel + '</div>' +
           '<div class="dash-next-lift" style="color:' + liftColor + '">' + (next.lift || '—') + '</div>' +
           '<button class="dash-start-btn" onclick="switchPage(\'log\');currentWeek=' + next.week + ';renderAll()">Start Workout →</button>' +
           '</div>';
@@ -525,35 +477,36 @@ function renderDashboard() {
     }
   }
 
-  renderVolumeProgression();
-
-  const recentEl = document.getElementById('dash-recent-card');
-  if (recentEl) {
-    const sessions = getRecentSessions(3);
+  const lastEl = document.getElementById('dash-last-card');
+  if (lastEl) {
+    const sessions = getRecentSessions(1);
     if (sessions.length === 0) {
-      recentEl.innerHTML = '<div class="dash-section-label">Recent Sessions</div>' +
-        '<div style="font-size:13px;color:var(--muted);padding:4px 0 2px">No sessions logged yet</div>';
+      lastEl.style.display = 'none';
     } else {
-      const rows = sessions.map(function(s) {
-        const dayLabel = 'Wk ' + s.week + ' · Day ' + s.day;
-        const color = LIFT_COLORS[s.lift] || 'var(--muted2)';
-        const dateStr = s.ts ? new Date(s.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-        return '<div class="dash-recent-row" onclick="switchPage(\'log\');currentWeek=' + s.week + ';renderAll()">' +
-          '<div class="dash-recent-dot" style="background:' + color + '40;border:2px solid ' + color + '"></div>' +
-          '<div class="dash-recent-main">' +
-          '<div class="dash-recent-lift">' + (s.lift || '—') + '</div>' +
-          '<div class="dash-recent-meta">' + dayLabel + (dateStr ? ' · ' + dateStr : '') + '</div>' +
-          '</div>' +
-          '<div class="dash-recent-load">' + (s.load ? s.load + ' ' + u : '') + '</div>' +
-          '</div>';
-      }).join('');
-      recentEl.innerHTML = '<div class="dash-section-label">Recent Sessions</div>' + rows;
+      lastEl.style.display = '';
+      const s = sessions[0];
+      const color = LIFT_COLORS[s.lift] || 'var(--accent)';
+      const dayLabel = 'Wk ' + s.week + ' · Day ' + s.day;
+      const dateStr = s.ts ? new Date(s.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+      const topSetHtml = s.load
+        ? '<div style="font-size:13px;color:var(--text);margin-top:8px;font-weight:600">Top set: ' + s.load + ' ' + u + ' \xd7 ' + (s.reps || '—') + '</div>'
+        : '';
+      const dateHtml = dateStr ? '<div style="font-size:12px;color:var(--muted);margin-top:2px">' + dateStr + '</div>' : '';
+      lastEl.innerHTML =
+        '<div class="dash-card" style="background:var(--surface2);border-left:3px solid ' + color + ';cursor:pointer" onclick="switchPage(\'log\');currentWeek=' + s.week + ';renderAll()">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Last Session</div>' +
+        '<span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(0,166,112,0.15);color:#00A670;padding:3px 8px;border-radius:20px">✓ Completed</span>' +
+        '</div>' +
+        '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:1px;color:' + color + ';line-height:1">' + (s.lift || '—') + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + dayLabel + '</div>' +
+        topSetHtml + dateHtml +
+        '</div>';
     }
   }
 
-  renderConsistency('month');
   renderCycleProgress();
-  renderActivityMetrics();
+  renderConsistency('month');
 }
 
 
@@ -2865,93 +2818,6 @@ function renderCycleProgress() {
   });
 }
 
-function renderVolumeProgression() {
-  const el = document.getElementById('dash-volume-card');
-  if(!el) return;
-  if(!activePlan || !PROGRAMS[activePlan]) { el.innerHTML = ''; return; }
-  const plan = getActivePlan();
-  const totalWeeks = plan.weeks || TOTAL_WEEKS;
-  const lifts = MAIN_LIFTS;
-  const weeklyData = {};
-  lifts.forEach(l => { weeklyData[l] = []; });
-  const weekLabels = [];
-  for(let w = 1; w <= totalWeeks; w++) {
-    weekLabels.push('W' + w);
-    lifts.forEach(l => {
-      let vol = 0;
-      for(let d = 1; d <= (plan.days || DAYS); d++) {
-        const e = getLog(w, d);
-        if(e?.saved && e.lift === l) vol += (parseFloat(e.sets)||0)*(parseFloat(e.reps)||0)*(parseFloat(e.load)||0);
-      }
-      weeklyData[l].push(vol > 0 ? vol : null);
-    });
-  }
-  const VOLUME_LIFT_COLORS = {'Back Squat':'#61D2DA','Bench Press':'#FF6B6B','Deadlift':'#FFD166','Overhead Press':'#A78BFA','Shoulder Press':'#A78BFA'};
-  const canvasId = 'volume-prog-canvas';
-  const legendHtml = lifts.map(l => {
-    const color = VOLUME_LIFT_COLORS[l] || LIFT_COLORS[l] || '#61D2DA';
-    return `<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div><span style="font-size:10px;color:var(--muted)">${l}</span></div>`;
-  }).join('');
-  el.innerHTML = `
-    <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Volume Progression</div>
-    <div style="height:180px;position:relative"><canvas id="${canvasId}"></canvas></div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px">${legendHtml}</div>`;
-  if(window._volumeChart) { try{ window._volumeChart.destroy(); }catch(e){} window._volumeChart = null; }
-  const ctx = document.getElementById(canvasId)?.getContext('2d');
-  if(!ctx || typeof Chart === 'undefined') return;
-  const datasets = lifts.map((l, i) => ({
-    label: l, data: weeklyData[l],
-    borderColor: VOLUME_LIFT_COLORS[l] || LIFT_COLORS[l] || '#61D2DA',
-    backgroundColor: 'transparent',
-    borderWidth: 2, tension: 0.4,
-    pointRadius: 2.5, pointBackgroundColor: VOLUME_LIFT_COLORS[l] || LIFT_COLORS[l] || '#61D2DA',
-    spanGaps: false
-  }));
-  window._volumeChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels: weekLabels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: document.body.classList.contains('light') ? '#6b6c75' : '#55565f', font: { size: 9, weight: '700' } }, border: { display: false } },
-        y: { display: false }
-      }
-    }
-  });
-}
-
-function renderActivityMetrics() {
-  const el = document.getElementById('dash-activity-card');
-  if(!el) return;
-  const completed = JSON.parse(localStorage.getItem('ll_completed_dates') || '[]');
-  const today = new Date();
-  function lStr(d) {
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  }
-  function countInRange(s, e) { return completed.filter(d => d >= s && d <= e).length; }
-  // This Week: Monday–Sunday
-  const dow = (today.getDay() + 6) % 7; // Mon=0, Sun=6
-  const monDate = new Date(today); monDate.setDate(today.getDate() - dow);
-  const sunDate = new Date(monDate); sunDate.setDate(monDate.getDate() + 6);
-  // This Month: 1st to today
-  const thisMonthFirst = new Date(today.getFullYear(), today.getMonth(), 1);
-  // Last Month: 1st to last day of previous month
-  const lastMonthLast = new Date(today.getFullYear(), today.getMonth(), 0);
-  const lastMonthFirst = new Date(lastMonthLast.getFullYear(), lastMonthLast.getMonth(), 1);
-  const thisWeek = countInRange(lStr(monDate), lStr(sunDate));
-  const thisMonth = countInRange(lStr(thisMonthFirst), lStr(today));
-  const lastMonth = countInRange(lStr(lastMonthFirst), lStr(lastMonthLast));
-  el.innerHTML = `
-    <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Activity</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${[['THIS WEEK',thisWeek],['LAST MONTH',lastMonth],['THIS MONTH',thisMonth]].map(([lbl,val])=>`
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">${lbl}</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);line-height:1">${val}</span>
-        </div>`).join('')}
-    </div>`;
-}
 
 function autoOpenNextDay() {
   if(!activePlan || !PROGRAMS[activePlan]) return;
