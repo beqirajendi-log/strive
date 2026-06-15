@@ -1219,3 +1219,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .consistency-toggle button { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--muted); font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 9px; border-radius: 10px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
 .consistency-toggle button.active { border-color: #61D2DA; color: #61D2DA; background: rgba(97,210,218,0.08); }
 #page-dashboard { position: relative; background: var(--bg); }
+.completion-celebration { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+.completion-celebration.active { opacity: 1; }
+.celebration-glow { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(0,128,137,0.30) 0%, rgba(0,128,137,0.14) 30%, rgba(0,128,137,0.04) 55%, transparent 75%), rgba(18,18,18,0.5); backdrop-filter: blur(2px); }
+.celebration-check { position: relative; z-index: 1; width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #008089, #61D2DA); display: flex; align-items: center; justify-content: center; transform: scale(0.7); transition: transform 0.35s cubic-bezier(0.22,1,0.36,1); box-shadow: 0 0 40px 8px rgba(97,210,218,0.35); }
+.completion-celebration.active .celebration-check { transform: scale(1); }

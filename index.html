@@ -839,6 +839,14 @@
 <div class="toast" id="toast"></div>
 
 <script src="js/app.js"></script>
+<div id="completionCelebration" class="completion-celebration">
+  <div class="celebration-glow"></div>
+  <div class="celebration-check">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
+      <path d="M5 13l4 4L19 7"/>
+    </svg>
+  </div>
+</div>
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{navigator.serviceWorker.register('/peakblock/sw.js').catch(()=>{});});

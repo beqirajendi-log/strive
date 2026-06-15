@@ -468,8 +468,12 @@ function renderDashboard() {
           '</div>';
       } else if (next) {
         const liftColor = LIFT_COLORS[next.lift] || 'var(--accent)';
+        const _td = new Date();
+        const _todayKey = _td.getFullYear() + '-' + String(_td.getMonth()+1).padStart(2,'0') + '-' + String(_td.getDate()).padStart(2,'0');
+        const _completedDates = JSON.parse(localStorage.getItem('ll_completed_dates') || '[]');
+        const _cardLabel = _completedDates.includes(_todayKey) ? 'Next Workout' : 'Today\'s Workout';
         nextEl.innerHTML = '<div class="dash-card" style="border-left:3px solid ' + liftColor + '">' +
-          '<div class="dash-next-label">Today\'s Workout — Wk ' + next.week + ' · ' + next.dayLabel + '</div>' +
+          '<div class="dash-next-label">' + _cardLabel + ' — Wk ' + next.week + ' · ' + next.dayLabel + '</div>' +
           '<div class="dash-next-lift" style="color:' + liftColor + '">' + (next.lift || '—') + '</div>' +
           '<button class="dash-start-btn" onclick="switchPage(\'log\');currentWeek=' + next.week + ';renderAll()">Start Workout →</button>' +
           '</div>';
@@ -882,7 +886,8 @@ function saveDay(d){
   if(!localStorage.getItem('ll_cycle_start')) {
     localStorage.setItem('ll_cycle_start', Date.now().toString());
   }
-  renderHeader();renderDots();updateProgressBar();checkCycleComplete();
+  const cycleComplete = checkCycleComplete();
+  renderHeader();renderDots();updateProgressBar();
   setTimeout(() => autoOpenNextDay(), 300);
   haptic(30);
   const _todayStr = new Date().toISOString().slice(0,10);
@@ -893,7 +898,7 @@ function saveDay(d){
     if(!template[d])template[d]={};
     template[d]={lift,accs};
     localStorage.setItem('ll_template',JSON.stringify(template));
-    
+
   }
 
   // Auto-advance to next unsaved day
@@ -907,11 +912,17 @@ function saveDay(d){
     }, 300);
   }
 
-  if(prOneRM) {
-    showPRCelebration(lift, prOneRM);
-  } else {
-    showToast(`Day ${d} saved`);
-  }
+  showCompletionCelebration(() => {
+    if (cycleComplete) {
+      switchPage('profile');
+      goProfileScreen('profile-review');
+      showToast('Cycle complete! 🎉');
+    } else {
+      switchPage('dashboard');
+      renderDashboard();
+    }
+    if (prOneRM) showPRCelebration(lift, prOneRM);
+  });
 }
 
 // CHART
@@ -2176,24 +2187,20 @@ function renderSetupReview() {
     </div>`;
 }
 
-// Auto-show Block Review when cycle completes
+// Auto-show Block Review when cycle completes; returns true if this call triggered it
 function checkCycleComplete() {
   const completedWeeks = Array.from({length: TOTAL_WEEKS}, (_,i) => weekDone(i+1) === DAYS ? 1 : 0).reduce((a,b)=>a+b,0);
   if(completedWeeks === TOTAL_WEEKS) {
     const alreadyShown = localStorage.getItem('ll_review_shown_' + (JSON.parse(localStorage.getItem('ll_archived')||'[]').length));
     if(!alreadyShown) {
-      // Store end date
       if(!localStorage.getItem('ll_cycle_end')) {
         localStorage.setItem('ll_cycle_end', Date.now().toString());
       }
       localStorage.setItem('ll_review_shown_' + (JSON.parse(localStorage.getItem('ll_archived')||'[]').length), '1');
-      setTimeout(() => {
-        switchPage('profile');
-        goProfileScreen('profile-review');
-        showToast('Cycle complete! 🎉');
-      }, 800);
+      return true;
     }
   }
+  return false;
 }
 
 
@@ -2991,6 +2998,17 @@ function updateProgressBar() {
   document.getElementById('progress-label').textContent = `Week ${currentWeek} of ${totalWeeks} · ${doneWeeks} complete`;
   document.getElementById('progress-pct').textContent = `${pct}%`;
   document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+// COMPLETION CELEBRATION
+function showCompletionCelebration(onComplete) {
+  const overlay = document.getElementById('completionCelebration');
+  overlay.classList.add('active');
+  if (navigator.vibrate) navigator.vibrate(30);
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    setTimeout(() => { onComplete(); }, 250);
+  }, 900);
 }
 
 // PR CELEBRATION
