@@ -551,7 +551,7 @@ function renderDashboard() {
     }
   }
 
-  renderCalendar();
+  renderConsistency('month');
   renderCycleProgress();
   renderActivityMetrics();
 }
@@ -2657,76 +2657,171 @@ function migrateCompletedDates() {
   localStorage.setItem('ll_completed_dates_migrated', '1');
 }
 
-function renderCalendar() {
-  const el = document.getElementById('dash-calendar-card');
+// CONSISTENCY WIDGET STATE
+let _conView = 'month';
+let _conMonth = new Date().getMonth();
+let _conYear = new Date().getFullYear();
+
+function switchConsistency(view) {
+  _conView = view;
+  const today = new Date();
+  if(view === 'month') { _conMonth = today.getMonth(); _conYear = today.getFullYear(); }
+  if(view === 'year')  { _conYear = today.getFullYear(); }
+  document.querySelectorAll('.consistency-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+  renderConsistency(view);
+}
+
+function renderConsistency(view) {
+  const el = document.getElementById('consistencyContent');
   if(!el) return;
+  _conView = view || _conView;
+  if(_conView === 'month')   _renderConMonth(el);
+  else if(_conView === 'year')    _renderConYear(el);
+  else                             _renderConAllTime(el);
+}
+
+function _conDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function _renderConMonth(el) {
   const completed = new Set(JSON.parse(localStorage.getItem('ll_completed_dates') || '[]'));
   const today = new Date();
-  function localStr(d) {
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  }
-  const todayStr = localStr(today);
-  // Build current-week row + collapsible full-month grid
-  const DAYS_SHORT = ['S','M','T','W','T','F','S'];
-  function weekStart(d) {
-    const t = new Date(d); t.setDate(t.getDate() - t.getDay()); return t;
-  }
-  function dateStr(d) { return localStr(d); }
-  function pillHtml(d) {
-    const s = dateStr(d);
-    const letter = DAYS_SHORT[d.getDay()];
-    const num = d.getDate();
-    const isToday = s === todayStr;
-    const isDone = completed.has(s);
-    const isFuture = s > todayStr;
-    let cls = 'cal-pill';
-    if(isDone) cls += ' cal-completed';
-    if(isToday) cls += ' cal-today';
-    if(!isDone && !isToday && isFuture) cls += ' cal-future';
-    return `<div class="${cls}"><div class="cal-pill-letter">${letter}</div><div class="cal-pill-num">${num}</div></div>`;
-  }
-  // Current week row
-  const ws = weekStart(today);
-  let weekRow = '<div class="cal-week-row">';
-  for(let i = 0; i < 7; i++) {
-    const d = new Date(ws); d.setDate(d.getDate() + i);
-    weekRow += pillHtml(d);
-  }
-  weekRow += '</div>';
-  // Full month grid for collapse
-  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-  const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  const gridStart = weekStart(monthStart);
-  let monthGrid = '';
+  const todayStr = _conDateStr(today);
+  const yr = _conYear, mo = _conMonth;
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DOW = ['M','T','W','T','F','S','S'];
+
+  // Grid: start from Monday of the week containing the 1st
+  const firstDay = new Date(yr, mo, 1);
+  // Mon=0 offset
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const gridStart = new Date(firstDay);
+  gridStart.setDate(gridStart.getDate() - startOffset);
+  const lastDay = new Date(yr, mo + 1, 0);
+  const endOffset = (6 - (lastDay.getDay() + 6) % 7);
+  const gridEnd = new Date(lastDay);
+  gridEnd.setDate(gridEnd.getDate() + endOffset);
+
+  // Count sessions this month
+  let monthCount = 0;
+  completed.forEach(s => { if(s.startsWith(yr+'-'+String(mo+1).padStart(2,'0'))) monthCount++; });
+
+  // Build cells
+  let cells = '';
   let cur = new Date(gridStart);
-  while(cur <= monthEnd || cur.getDay() !== 0) {
-    if(cur.getDay() === 0) monthGrid += '<div class="cal-week-row" style="margin-top:4px">';
-    monthGrid += pillHtml(cur);
-    if(cur.getDay() === 6) monthGrid += '</div>';
+  while(cur <= gridEnd) {
+    const s = _conDateStr(cur);
+    const inMonth = cur.getMonth() === mo && cur.getFullYear() === yr;
+    const isDone = completed.has(s);
+    const isToday = s === todayStr;
+    const num = cur.getDate();
+    let style = '', textColor = 'var(--muted)';
+    if(!inMonth) {
+      style = 'opacity:0.2;border-color:transparent;background:transparent;';
+    } else if(isDone) {
+      style = 'background:linear-gradient(135deg,#008089,#61D2DA);border-color:transparent;';
+      textColor = '#0c1414';
+    }
+    const ring = isToday ? 'box-shadow:0 0 0 2px #61D2DA;' : '';
+    const fw = (isToday || isDone) ? '700' : '400';
+    const tc = (isToday && !isDone) ? '#61D2DA' : textColor;
+    cells += `<div style="aspect-ratio:1;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:${fw};color:${tc};${style}${ring}">${inMonth ? num : ''}</div>`;
     cur.setDate(cur.getDate() + 1);
-    if(cur > monthEnd && cur.getDay() === 0) break;
   }
-  const monthName = today.toLocaleString('default', {month:'long', year:'numeric'});
+
   el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Training Calendar</div>
-      <button onclick="toggleCalendar()" id="cal-toggle-btn" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:none;border:none;cursor:pointer;padding:0">Month</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button onclick="_conNavMonth(-1)" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 6px;line-height:1">‹</button>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text)">${MONTH_NAMES[mo].toUpperCase()} ${yr}</div>
+      <button onclick="_conNavMonth(1)" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 6px;line-height:1">›</button>
     </div>
-    ${weekRow}
-    <div class="cal-collapse-body" id="cal-collapse">
-      <div class="cal-collapse-inner">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px">${monthName}</div>
-        ${monthGrid}
-      </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px">
+      ${DOW.map(d=>`<div style="text-align:center;font-size:10px;text-transform:uppercase;color:var(--muted2);letter-spacing:1px;padding-bottom:4px">${d}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${cells}</div>
+    <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text)">${monthCount}</span>
+      <span style="font-size:12px;color:var(--muted)">sessions this month</span>
     </div>`;
 }
 
-function toggleCalendar() {
-  const body = document.getElementById('cal-collapse');
-  const btn = document.getElementById('cal-toggle-btn');
-  if(!body) return;
-  const open = body.classList.toggle('cal-open');
-  if(btn) btn.textContent = open ? 'Week' : 'Month';
+function _conNavMonth(dir) {
+  _conMonth += dir;
+  if(_conMonth > 11) { _conMonth = 0; _conYear++; }
+  if(_conMonth < 0)  { _conMonth = 11; _conYear--; }
+  _renderConMonth(document.getElementById('consistencyContent'));
+}
+
+function _renderConYear(el) {
+  const completed = JSON.parse(localStorage.getItem('ll_completed_dates') || '[]');
+  const yr = _conYear;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const counts = MONTHS.map((_,i) => {
+    const prefix = yr + '-' + String(i+1).padStart(2,'0');
+    return completed.filter(s => s.startsWith(prefix)).length;
+  });
+  const maxCount = Math.max(...counts, 1);
+  const total = counts.reduce((a,b)=>a+b,0);
+
+  const bars = counts.map((c, i) => {
+    const h = Math.max(Math.round((c / maxCount) * 110), c > 0 ? 3 : 0);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:130px">
+      <div style="font-size:10px;color:#61D2DA;font-weight:700;margin-bottom:4px;min-height:14px">${c > 0 ? c : ''}</div>
+      <div style="width:100%;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#61D2DA,#008089);min-height:${c>0?3:0}px;height:${h}px"></div>
+      <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;margin-top:8px;letter-spacing:0.5px">${MONTHS[i]}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button onclick="_conNavYear(-1)" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 6px;line-height:1">‹</button>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text)">${yr}</div>
+      <button onclick="_conNavYear(1)" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 6px;line-height:1">›</button>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:6px;height:130px">${bars}</div>
+    <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px;justify-content:center">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text)">${total}</span>
+      <span style="font-size:12px;color:var(--muted)">sessions this year</span>
+    </div>`;
+}
+
+function _conNavYear(dir) {
+  _conYear += dir;
+  _renderConYear(document.getElementById('consistencyContent'));
+}
+
+function _renderConAllTime(el) {
+  const completed = JSON.parse(localStorage.getItem('ll_completed_dates') || '[]');
+  const currentYear = new Date().getFullYear();
+  const years = new Set([currentYear]);
+  completed.forEach(s => { const y = parseInt(s.slice(0,4)); if(!isNaN(y)) years.add(y); });
+  const sortedYears = Array.from(years).sort();
+  const counts = sortedYears.map(y => completed.filter(s => s.startsWith(String(y))).length);
+  const maxCount = Math.max(...counts, 1);
+  const total = counts.reduce((a,b)=>a+b,0);
+
+  const bars = sortedYears.map((y, i) => {
+    const c = counts[i];
+    const isCurrent = y === currentYear;
+    const h = Math.max(Math.round((c / maxCount) * 110), c > 0 ? 3 : 0);
+    const shadow = isCurrent ? 'box-shadow:0 0 0 2px #61D2DA,0 0 12px rgba(97,210,218,0.4);' : '';
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:130px">
+      <div style="font-size:10px;color:#61D2DA;font-weight:700;margin-bottom:4px;min-height:14px">${c > 0 ? c : ''}</div>
+      <div style="width:100%;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#61D2DA,#008089);min-height:${c>0?3:0}px;height:${h}px;${shadow}"></div>
+      <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;margin-top:8px;letter-spacing:0.5px">${y}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text);text-align:center;margin-bottom:14px">ALL TIME</div>
+    <div style="display:flex;align-items:flex-end;gap:10px;height:130px">${bars}</div>
+    <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px;justify-content:center">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text)">${total}</span>
+      <span style="font-size:12px;color:var(--muted)">total sessions logged</span>
+    </div>`
 }
 
 function renderCycleProgress() {
