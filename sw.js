@@ -1,13 +1,13 @@
-﻿const CACHE = 'strive-v139';
+const CACHE = 'strive-v140';
 const ASSETS = [
-  '/peakblock/',
-  '/peakblock/index.html',
-  '/peakblock/css/styles.css',
-  '/peakblock/js/programs/12week.js',
-  '/peakblock/js/programs/531.js',
-  '/peakblock/js/programs/dumbbells.js',
-  '/peakblock/js/app.js',
-  '/peakblock/manifest.json'
+  '/strive/',
+  '/strive/index.html',
+  '/strive/css/styles.css',
+  '/strive/js/programs/12week.js',
+  '/strive/js/programs/531.js',
+  '/strive/js/programs/dumbbells.js',
+  '/strive/js/app.js',
+  '/strive/manifest.json'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(
