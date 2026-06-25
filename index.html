@@ -103,6 +103,25 @@
         </div>
       </div>
     </div>
+    <div class="ob-plan-card" onclick="togglePlanDetail(this,'dumbbells')">
+      <div class="ob-plan-card-top">
+        <div class="ob-plan-content">
+          <div class="ob-plan-name">Dumbbell PPL</div>
+          <div class="ob-plan-desc">Push, Pull, Legs — dumbbells only. No barbell required.</div>
+        </div>
+        <div class="ob-plan-arrow">›</div>
+      </div>
+      <div class="ob-plan-expand" onclick="event.stopPropagation()">
+        <div class="ob-plan-expand-inner">
+          <div class="plan-detail-label">About</div>
+          <div class="plan-detail-text">A dumbbell-only hypertrophy routine using Push/Pull/Legs splits and double progression. Work up to 12 reps on all 3 sets, then increase the weight. Runs as a 3 or 6-day cycle across 8 repeatable weeks.</div>
+          <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
+          <div class="plan-detail-text">Beginners and early intermediates training at home or without barbell access. If you have a barbell, consider a barbell program instead.</div>
+          <button class="plan-confirm-btn" onclick="obFinish(); selectPlan('dumbbells')">Start this program →</button>
+          <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
+        </div>
+      </div>
+    </div>
   </div>
   <div style="padding:1.25rem 1.5rem 2rem;text-align:center">
     <button onclick="skipOnboarding()" style="background:none;border:none;color:var(--muted);font-family:'Geist',sans-serif;font-size:14px;font-weight:600;letter-spacing:0.5px;cursor:pointer;padding:8px 16px;border-radius:var(--rs);transition:color 0.15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Skip for now →</button>
@@ -405,6 +424,35 @@
             <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
             <div class="plan-detail-text">Ideal for intermediate to advanced lifters who want a sustainable, no-frills program they can run indefinitely without burning out.</div>
             <button class="plan-confirm-btn" onclick="selectPlan('531')">Start this program →</button>
+            <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-card" id="plan-dbl-card" onclick="togglePlanDetail(this,'dumbbells')" style="cursor:pointer">
+        <div class="plan-card-header">
+          <div>
+            <div class="plan-card-title">Dumbbell PPL</div>
+            <div class="plan-card-sub">Push, Pull, Legs — dumbbells only. No barbell required.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+            <div id="plan-dbl-badge" class="active-plan-badge" style="display:none">Active</div>
+            <div id="plan-dbl-count" class="plan-completion-count"></div>
+          </div>
+        </div>
+        <div class="plan-card-phases">
+          <div class="plan-phase"><span style="color:#008089">●</span> Day 1: Push (Chest, Shoulders, Triceps)</div>
+          <div class="plan-phase"><span style="color:#ff8250">●</span> Day 2: Pull (Back, Biceps, Traps)</div>
+          <div class="plan-phase"><span style="color:#5ddb8a">●</span> Day 3: Legs (Quads, Hamstrings, Calves)</div>
+          <div class="plan-phase"><span style="color:#61D2DA">●</span> 8 weeks · 3×12 AMRAP · double progression</div>
+        </div>
+        <div class="plan-card-expand" onclick="event.stopPropagation()">
+          <div class="plan-card-expand-inner">
+            <div class="plan-detail-label">About</div>
+            <div class="plan-detail-text">A dumbbell-only hypertrophy routine using Push/Pull/Legs splits and double progression. Work up to 12 reps on all 3 sets, then increase the weight. Runs as a 3 or 6-day cycle across 8 repeatable weeks.</div>
+            <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
+            <div class="plan-detail-text">Beginners and early intermediates training at home or without barbell access. If you have a barbell, consider a barbell program instead.</div>
+            <button class="plan-confirm-btn" onclick="selectPlan('dumbbells')">Start this program →</button>
             <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
           </div>
         </div>
@@ -812,6 +860,34 @@
           </div>
         </div>
       </div>
+      <div class="plan-card" id="p-plan-dbl-card" onclick="togglePlanDetail(this,'dumbbells')" style="cursor:pointer">
+        <div class="plan-card-header">
+          <div>
+            <div class="plan-card-title">Dumbbell PPL</div>
+            <div class="plan-card-sub">Push, Pull, Legs — dumbbells only. No barbell required.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+            <div id="p-plan-dbl-badge" class="active-plan-badge" style="display:none">Active</div>
+            <div id="p-plan-dbl-count" class="plan-completion-count"></div>
+          </div>
+        </div>
+        <div class="plan-card-phases">
+          <div class="plan-phase"><span style="color:#008089">●</span> Day 1: Push (Chest, Shoulders, Triceps)</div>
+          <div class="plan-phase"><span style="color:#ff8250">●</span> Day 2: Pull (Back, Biceps, Traps)</div>
+          <div class="plan-phase"><span style="color:#5ddb8a">●</span> Day 3: Legs (Quads, Hamstrings, Calves)</div>
+          <div class="plan-phase"><span style="color:#61D2DA">●</span> 8 weeks · 3×12 AMRAP · double progression</div>
+        </div>
+        <div class="plan-card-expand" onclick="event.stopPropagation()">
+          <div class="plan-card-expand-inner">
+            <div class="plan-detail-label">About</div>
+            <div class="plan-detail-text">A dumbbell-only hypertrophy routine using Push/Pull/Legs splits and double progression. Work up to 12 reps on all 3 sets, then increase the weight. Runs as a 3 or 6-day cycle across 8 repeatable weeks.</div>
+            <div class="plan-detail-label" style="margin-top:12px">Who it's for</div>
+            <div class="plan-detail-text">Beginners and early intermediates training at home or without barbell access. If you have a barbell, consider a barbell program instead.</div>
+            <button class="plan-confirm-btn" onclick="selectPlan('dumbbells')">Start this program →</button>
+            <div class="plan-collapse-link" onclick="collapsePlanCards()">Not now</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- TRAINING REPORTS -->
@@ -841,6 +917,7 @@
 <script>var PROGRAMS = {};</script>
 <script src="js/programs/12week.js"></script>
 <script src="js/programs/531.js"></script>
+<script src="js/programs/dumbbells.js"></script>
 <script src="js/app.js"></script>
 <div id="rpeOverlay" class="rpe-overlay">
   <div class="rpe-sheet">

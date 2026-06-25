@@ -335,8 +335,12 @@ function getNextWorkout() {
     for (let d = 1; d <= plan.days; d++) {
       const entry = getLog(w, d);
       if (!entry?.saved && !entry?.skipped) {
-        const lift = entry?.lift || (plan.dayLifts[d - 1] || '');
-        const dayLabel = 'Day ' + d;
+        const lift = entry?.lift || (plan.dayLifts?.[d - 1] || '');
+        let dayLabel = 'Day ' + d;
+        if (plan.progressionType === 'fixed') {
+          const wd = plan.weeks_data?.['week' + w]?.days?.['day' + d];
+          if (wd?.label) dayLabel = wd.label;
+        }
         return { week: w, day: d, lift, dayLabel };
       }
     }
@@ -496,7 +500,7 @@ function renderAll(anim){renderHeader();renderDots();renderDays(anim);updateProg
 
 function renderHeader(){
   const plan = getActivePlan();
-  const scheme = plan.weeklyScheme[currentWeek-1] || {};
+  const scheme = (plan.weeklyScheme || [])[currentWeek-1] || {};
   const phaseName = scheme.phase || '';
   document.getElementById('week-display').textContent=`WEEK ${currentWeek}`;
   const ph=document.getElementById('week-phase');
@@ -648,6 +652,10 @@ function renderDays(anim){
     const badgeClass = hasSave ? 'completed' : (isSkipped ? 'badge-skipped' : 'upcoming');
     const badgeText = hasSave ? 'COMPLETED ✓' : (isSkipped ? 'SKIPPED' : 'UPCOMING');
     const dayTypeLabel = '';
+    const fixedDayData = plan.progressionType === 'fixed'
+      ? plan.weeks_data?.['week' + currentWeek]?.days?.['day' + d]
+      : null;
+    const dayHeaderLabel = fixedDayData ? fixedDayData.label.toUpperCase() : ('Day ' + d);
 
     const card=document.createElement('div');
     card.className='day-card'+(hasSave?' has-data':'')+(isSkipped?' skipped':'')+(isOpen?' open':'');
@@ -655,7 +663,7 @@ function renderDays(anim){
     card.innerHTML=`
       <div class="day-card-top" onclick="haptic(10);toggleDay(${d})">
         <div class="day-card-top-row">
-          <span class="day-label">Day ${d}${dayTypeLabel}</span>
+          <span class="day-label">${dayHeaderLabel}${dayTypeLabel}</span>
           <span class="day-status-badge ${badgeClass}" id="dc-badge-${d}">${badgeText}</span>
         </div>
         <div class="day-card-top-row">
@@ -694,7 +702,7 @@ function skipDay(d) {
     renderAll();
   } else {
     // Preserve existing prefilled data, just mark as skipped
-    const prefill = getActivePlan().dayLifts[d-1] ? getLog(currentWeek,d) : {};
+    const prefill = getActivePlan().dayLifts?.[d-1] ? getLog(currentWeek,d) : {};
     setLog(currentWeek, d, {...(prefill||{}), skipped:true, saved:false, ts:Date.now()});
     renderAll();
     setTimeout(() => autoOpenNextDay(), 300);
@@ -800,6 +808,41 @@ function saveDay(d){
   // Get data from program definition (no input fields in new session view)
   const existing = getLog(currentWeek, d);
   const plan = getActivePlan();
+
+  if(plan.progressionType === 'fixed') {
+    setLog(currentWeek, d, {...(existing || {}), saved: true, ts: Date.now()});
+    const card = document.getElementById(`dc-${d}`);
+    card.classList.add('saved-day');
+    card.classList.add('day-saved');
+    const badge = document.getElementById(`dc-badge-${d}`);
+    if(badge){badge.textContent='COMPLETED ✓';badge.className='day-status-badge completed';}
+    document.getElementById(`sb-${d}`).textContent='✓ Day Complete';
+    document.getElementById(`sb-${d}`).classList.add('completed');
+    if(!localStorage.getItem('ll_cycle_start')) {
+      localStorage.setItem('ll_cycle_start', Date.now().toString());
+    }
+    const cycleComplete = checkCycleComplete();
+    renderHeader();renderDots();updateProgressBar();
+    setTimeout(() => autoOpenNextDay(), 300);
+    haptic(30);
+    const _todayStr = new Date().toISOString().slice(0,10);
+    const _cdates = JSON.parse(localStorage.getItem('ll_completed_dates') || '[]');
+    if(!_cdates.includes(_todayStr)) { _cdates.push(_todayStr); localStorage.setItem('ll_completed_dates', JSON.stringify(_cdates)); }
+    const planDayNums = Array.from({length: plan.days}, (_, i) => i + 1);
+    const nextDay = planDayNums.find(i => i > d && !getLog(currentWeek,i)?.saved);
+    if(nextDay) {
+      setTimeout(()=>{
+        for(let i=1;i<=DAYS;i++) document.getElementById(`dc-${i}`)?.classList.remove('open');
+        document.getElementById(`dc-${nextDay}`)?.classList.add('open');
+        document.getElementById(`dc-${nextDay}`)?.scrollIntoView({behavior:'smooth',block:'start'});
+      }, 300);
+    }
+    showCompletionCelebration(() => {
+      if(cycleComplete) { switchPage('profile'); goProfileScreen('profile-review'); showToast('Cycle complete! 🎉'); }
+    });
+    return;
+  }
+
   const lift = existing?.lift || (plan.dayLifts[d-1] || '');
   if(!lift){showToast('No lift assigned to this day');return;}
   const presc = getPrescription(currentWeek, lift, d);
@@ -1804,14 +1847,16 @@ function showProgramReadyOverlay() {
 }
 
 function showPlanConfirm(planId) {
-  const planNames = {'12week':'12-Week Periodization','531':'5/3/1 Wendler'};
+  const planNames = {'12week':'12-Week Periodization','531':'5/3/1 Wendler','dumbbells':'Dumbbell PPL'};
   const overlay = document.createElement('div');
   overlay.id = 'plan-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:1.5rem;';
   const hasData = Object.keys(logData).length > 0;
   const isFirstTime = !localStorage.getItem('ll_active_plan');
+  const _planObj = PROGRAMS[planId];
+  const _isFixed = _planObj?.progressionType === 'fixed';
   const confirmMsg = isFirstTime || !hasData
-    ? `You're selecting <strong style="color:var(--text)">${planNames[planId] || planId}</strong> as your training plan. Your sessions will be set up automatically based on your 1 Rep Max.`
+    ? `You're selecting <strong style="color:var(--text)">${planNames[planId] || planId}</strong> as your training plan. ${_isFixed ? 'No 1RM setup needed — pick your own weights each session.' : 'Your sessions will be set up automatically based on your 1 Rep Max.'}`
     : `Switching to <strong style="color:var(--text)">${planNames[planId] || planId}</strong> will cancel your current cycle and clear all logged data. This cannot be undone.`;
   const confirmTitle = isFirstTime || !hasData ? 'Start Training' : 'Switch Training Plan?';
 
@@ -1865,6 +1910,7 @@ function confirmPlanSwitch(planId) {
 
 function autoPopulateAllWeeks() {
   const plan = getActivePlan();
+  if(plan.progressionType === 'fixed') return;
   syncPlanConstants();
   // Show shimmer on visible day cards
   const scroll = document.getElementById('days-scroll');
@@ -1899,19 +1945,21 @@ function updatePlanBadges() {
   const archived = JSON.parse(localStorage.getItem('ll_archived') || '[]');
   const count12 = archived.filter(c => (c.plan==='12-Week Periodization'||!c.plan) && !c.cancelled).length;
   const count531 = archived.filter(c => c.plan==='5/3/1 Wendler' && !c.cancelled).length;
+  const countDbl = archived.filter(c => c.plan==='Dumbbell PPL' && !c.cancelled).length;
 
-  [['plan-12w','12week'], ['p-plan-12w','12week'], ['plan-531','531'], ['p-plan-531','531']].forEach(([prefix, planId]) => {
+  [['plan-12w','12week'], ['p-plan-12w','12week'], ['plan-531','531'], ['p-plan-531','531'],
+   ['plan-dbl','dumbbells'], ['p-plan-dbl','dumbbells']].forEach(([prefix, planId]) => {
     const badge = document.getElementById(prefix+'-badge');
     const card = document.getElementById(prefix+'-card');
     const count = document.getElementById(prefix+'-count');
-    const cnt = planId==='12week' ? count12 : count531;
+    const cnt = planId==='12week' ? count12 : (planId==='531' ? count531 : countDbl);
     if(badge) badge.style.display = activePlan===planId ? 'inline-block' : 'none';
     if(card) { card.classList.toggle('active-plan', activePlan===planId); card.style.opacity='1'; }
     if(count) { count.textContent = cnt>0?cnt+'× completed':''; count.className='plan-completion-count'+(cnt>0?' has-count':''); }
   });
 
   const sub = document.getElementById('training-plan-sub');
-  if(sub) sub.textContent = (activePlan==='531'?'5/3/1 Wendler':'12-Week Periodization') + ' · Active';
+  if(sub) sub.textContent = getActivePlan().name + ' · Active';
   const psub = document.getElementById('profile-plan-sub');
   if(psub) psub.textContent = getActivePlan().name + ' · Active';
 }
@@ -1919,9 +1967,39 @@ function updatePlanBadges() {
 
 
 
+function buildFixedSessionView(d, dayData, saved, hasSave, isSkipped) {
+  const notesHtml = dayData?.notes ? `<div class="day-notes">
+    <span class="day-notes-icon">💡</span>
+    <p class="day-notes-text">${dayData.notes}</p>
+  </div>` : '';
+
+  let setsHtml = '';
+  if (dayData?.exercises?.length > 0) {
+    dayData.exercises.forEach(ex => {
+      setsHtml += `<div class="session-set-row">
+        <span class="session-set-num" style="font-size:12px;color:var(--muted);font-weight:600;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ex.name}</span>
+        <span class="session-set-text" style="flex-shrink:0">${ex.sets.length}&nbsp;×&nbsp;${ex.sets[0].reps}&nbsp;&nbsp;·&nbsp;&nbsp;<span style="font-size:11px;color:var(--accent);letter-spacing:0.5px">AMRAP</span></span>
+      </div>`;
+    });
+  }
+
+  const btnHtml = `<button class="complete-day-btn${hasSave ? ' completed' : ''}" id="sb-${d}"
+    onclick="saveDay(${d})">${hasSave ? '✓ Day Complete' : 'Complete Day'}</button>`;
+
+  return `
+    ${notesHtml}
+    <div class="session-sets" style="margin-bottom:4px">${setsHtml}</div>
+    ${btnHtml}`;
+}
+
 function buildSessionView(d, lift, presc, saved, hasSave, isSkipped) {
   const plan = getActivePlan();
   const u = weightUnit();
+
+  if (plan.progressionType === 'fixed') {
+    const dayData = plan.weeks_data?.['week' + currentWeek]?.days?.['day' + d];
+    return buildFixedSessionView(d, dayData, saved, hasSave, isSkipped);
+  }
 
   // Day notes
   const weekScheme = plan.weeklyScheme ? plan.weeklyScheme[currentWeek-1] : null;
